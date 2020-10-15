@@ -5,6 +5,6 @@ Get Match Event Data from [Whoscored](http://whoscored.com/ "Whoscored") using *
 **_Required modules :_**
 * Selenium
 * tqdm
-* matplotsoccer
+* mplsoccer
 
 
