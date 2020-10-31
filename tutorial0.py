@@ -16,7 +16,7 @@ import pandas as pd
 import numpy as np
 from selenium import webdriver
 from main import (getMatchData,  createMatchesDF, createEventsDF)
-from visuals import (createPassNetworks, getTeamSuccesfulBoxPasses, getTeamTotalPasses)
+from visuals import (createPassNetworks, getTeamSuccessfulBoxPasses, getTeamTotalPasses)
 
 
 
@@ -66,7 +66,7 @@ getTeamTotalPasses(events_df, teamId, team, opponent, pitch_color='#000000')
 
 # Get Completed Box Passes by Team
 #You can select more cmaps here: https://matplotlib.org/3.1.0/tutorials/colors/colormaps.html
-getTeamSuccesfulBoxPasses(events_df, teamId, team, pitch_color='#000000', cmap='YlGn')
+getTeamSuccessfulBoxPasses(events_df, teamId, team, pitch_color='#000000', cmap='YlGn')
 
 
 

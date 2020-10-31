@@ -144,7 +144,7 @@ def createPassNetworks(matches_df, events_df, matchId, teamId, team, opponent, v
 
 
 
-def getTeamSuccesfulBoxPasses(events_df, teamId, team, pitch_color, cmap):
+def getTeamSuccessfulBoxPasses(events_df, teamId, team, pitch_color, cmap):
     """
     Parameters
     ----------
