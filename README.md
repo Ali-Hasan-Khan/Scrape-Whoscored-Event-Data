@@ -9,4 +9,4 @@ Get Match Event Data from [Whoscored](http://whoscored.com/ "Whoscored") using *
 
 **IMPORTANT!!**
 Replace pitch.py at the given location with the new file(**_pitch.py_**) in repo:
-  'C:\Users\\<Your Username>\anaconda3\Lib\site-packages\mplsoccer'
+  'C:\Users\<<Your Username>>\anaconda3\Lib\site-packages\mplsoccer'
