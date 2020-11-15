@@ -72,6 +72,30 @@ getTeamSuccessfulBoxPasses(events_df, teamId, team, pitch_color='#000000', cmap=
 
 
 
+### Get Passes For Different Durations ###
+
+team_players_dict = {}
+for player in matches_df['home'][data['matchId']]['players']:
+    team_players_dict[player['playerId']] = player['name'] 
+    
+# Total Passes
+passes_df = events_df.loc[[row['displayName'] == 'Pass' for row in list(events_df['type'])]].reset_index(drop=True)
+passes_df = passes_df.loc[[row['displayName'] == 'Successful' for row in list(passes_df['outcomeType'])]].reset_index(drop=True)
+passes_df = passes_df.loc[passes_df['teamId'] == teamId].reset_index(drop=True)
+passes_df.insert(27, column='playerName', value=[team_players_dict[i] for i in list(passes_df['playerId'])])
+
+
+# Cut in 2
+first_half_passes = passes_df.loc[[row['displayName'] == 'FirstHalf' for row in list(passes_df['period'])]]
+second_half_passes = passes_df.loc[[row['displayName'] == 'SecondHalf' for row in list(passes_df['period'])]].reset_index(drop=True)
+
+
+# Cut in 4 (quarter = 25 mins)
+first_quarter = first_half_passes.loc[first_half_passes['minute'] <= 25]
+second_quarter = first_half_passes.loc[first_half_passes['minute'] > 25].reset_index(drop=True)
+third_quarter = second_half_passes.loc[second_half_passes['minute'] <= 70]
+fourth_quarter = second_half_passes.loc[second_half_passes['minute'] > 70].reset_index(drop=True)
+
 
 
 
