@@ -101,7 +101,7 @@ fourth_quarter = second_half_passes.loc[second_half_passes['minute'] > 70].reset
 
 
 # Get Shot map for a team
-visuals.createShotmap(match_data, events_df, team='Sevilla', pitchcolor='black', shotcolor='white', goalcolor='red', marker_size=500)
+visuals.createShotmap(match_data, events_df, team='Sevilla', pitchcolor='black', shotcolor='white', goalcolor='red', titlecolor='white', legendcolor='white', marker_size=500)
 
 
 
