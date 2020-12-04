@@ -12,6 +12,52 @@ from mplsoccer.pitch import Pitch
 from matplotlib.colors import to_rgba
 
 
+def createShotmap(match_data, events_df, team, pitchcolor, shotcolor, goalcolor, marker_size):
+     # getting team id and venue
+    if match_data['home']['name'] == team:
+        teamId = match_data['home']['teamId']
+        venue = 'home'
+    else:
+        teamId = match_data['away']['teamId']
+        venue = 'away'
+        
+    # getting opponent   
+    if venue == 'home':
+        opponent = match_data['away']['name']
+    else:
+        opponent = match_data['home']['name']
+        
+    # ID for total shots: 9
+    total_shots = events_df.loc[[9 in row for row in list(events_df['satisfiedEventsTypes'])]]
+    team_shots = total_shots.loc[total_shots['teamId'] == teamId].reset_index(drop=True)
+    mask_goal = team_shots.isGoal == True
+
+    # Setup the pitch
+    pitch = Pitch(pitch_type='statsbomb', orientation='vertical', pitch_color=pitchcolor, line_color='#c7d5cc',
+                  figsize=(16, 11), view='half', pad_top=2, tight_layout=True)
+    fig, ax = pitch.draw()
+
+
+    # Plot the goals
+    pitch.scatter(team_shots[mask_goal].x/100*120, 80-team_shots[mask_goal].y/100*80, s=marker_size,
+                  edgecolors='black', c=goalcolor, zorder=2,
+                  label='goal', ax=ax)
+    pitch.scatter(team_shots[~mask_goal].x/100*120, 80-team_shots[~mask_goal].y/100*80,
+                  edgecolors='white', c=shotcolor, s=marker_size, zorder=2,
+                  label='shot', ax=ax)
+    # Set the title
+    ax.set_title(f'{team} shotmap \n vs {opponent}', fontsize=30)
+
+    # set legend
+    ax.legend(facecolor=pitchcolor, edgecolor='None', fontsize=20, loc='lower center', handlelength=4)
+
+    # Set the figure facecolor
+    fig.set_facecolor(pitchcolor)
+    
+    
+    
+    
+
 
 def createPassNetworks(matches_df, events_df, matchId, teamId, team, opponent, venue,
                        pitch_color, max_lw, marker_size, marker_color):
