@@ -12,8 +12,8 @@ from mplsoccer.pitch import Pitch
 from matplotlib.colors import to_rgba
 
 
-def createShotmap(match_data, events_df, team, pitchcolor, shotcolor, goalcolor, marker_size):
-     # getting team id and venue
+def createShotmap(match_data, events_df, team, pitchcolor, shotcolor, goalcolor, titlecolor, legendcolor, marker_size):
+    # getting team id and venue
     if match_data['home']['name'] == team:
         teamId = match_data['home']['teamId']
         venue = 'home'
@@ -27,7 +27,6 @@ def createShotmap(match_data, events_df, team, pitchcolor, shotcolor, goalcolor,
     else:
         opponent = match_data['home']['name']
         
-    # ID for total shots: 9
     total_shots = events_df.loc[[9 in row for row in list(events_df['satisfiedEventsTypes'])]]
     team_shots = total_shots.loc[total_shots['teamId'] == teamId].reset_index(drop=True)
     mask_goal = team_shots.isGoal == True
@@ -46,11 +45,14 @@ def createShotmap(match_data, events_df, team, pitchcolor, shotcolor, goalcolor,
                   edgecolors='white', c=shotcolor, s=marker_size, zorder=2,
                   label='shot', ax=ax)
     # Set the title
-    ax.set_title(f'{team} shotmap \n vs {opponent}', fontsize=30)
+    ax.set_title(f'{team} shotmap \n vs {opponent}', fontsize=30, color=titlecolor)
 
     # set legend
-    ax.legend(facecolor=pitchcolor, edgecolor='None', fontsize=20, loc='lower center', handlelength=4)
-
+    leg = ax.legend(facecolor=pitchcolor, edgecolor='None', fontsize=20, loc='lower center', handlelength=4)
+    leg_texts = leg.get_texts() # list of matplotlib Text instances.
+    leg_texts[0].set_color(legendcolor)
+    leg_texts[1].set_color(legendcolor)
+    
     # Set the figure facecolor
     fig.set_facecolor(pitchcolor)
     
