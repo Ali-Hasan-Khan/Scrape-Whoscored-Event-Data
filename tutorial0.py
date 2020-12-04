@@ -15,8 +15,8 @@ with some visualization examples.
 import pandas as pd
 import numpy as np
 from selenium import webdriver
-from main import (getMatchData,  createMatchesDF, createEventsDF)
-from visuals import (createPassNetworks, getTeamSuccessfulBoxPasses, getTeamTotalPasses)
+import main
+import visuals
 
 
 
@@ -28,15 +28,15 @@ if __name__ == "__main__":
     
 # whoscored match centre url of the required match (Example: Barcelona vs Sevilla)
 url = "https://www.whoscored.com/Matches/1491995/Live/Spain-LaLiga-2020-2021-Barcelona-Sevilla"
-match_data = getMatchData(driver, url)
+match_data = main.getMatchData(driver, url)
 
 
 # Match dataframe containing info about the match
-matches_df = createMatchesDF(match_data)
+matches_df = main.createMatchesDF(match_data)
 
 
 # Events dataframe      
-events_df = createEventsDF(match_data)
+events_df = main.createEventsDF(match_data)
 
 
 # match Id
@@ -56,17 +56,17 @@ opponent = 'Sevilla'
 venue = 'home'
 
 # Create Pass Network     
-createPassNetworks(matches_df, events_df, matchId, teamId, team, opponent, venue,
+visuals.createPassNetworks(matches_df, events_df, matchId, teamId, team, opponent, venue,
                    pitch_color='#000000', max_lw=18, marker_size=2000, marker_color='#6a009c')
 
 
 # Get Team Total Passes
-getTeamTotalPasses(events_df, teamId, team, opponent, pitch_color='#000000')
+visuals.getTeamTotalPasses(events_df, teamId, team, opponent, pitch_color='#000000')
 
 
 # Get Completed Box Passes by Team
 #You can select more cmaps here: https://matplotlib.org/3.1.0/tutorials/colors/colormaps.html
-getTeamSuccessfulBoxPasses(events_df, teamId, team, pitch_color='#000000', cmap='YlGn')
+visuals.getTeamSuccessfulBoxPasses(events_df, teamId, team, pitch_color='#000000', cmap='YlGn')
 
 
 
@@ -100,7 +100,8 @@ fourth_quarter = second_half_passes.loc[second_half_passes['minute'] > 70].reset
 
 
 
-
+# Get Shot map for a team
+visuals.createShotmap(match_data, events_df, team='Sevilla', pitchcolor='black', shotcolor='white', goalcolor='red', marker_size=500)
 
 
 
