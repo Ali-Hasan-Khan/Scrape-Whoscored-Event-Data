@@ -61,26 +61,21 @@ def createShotmap(match_data, events_df, team, pitchcolor, shotcolor, goalcolor,
     
 
 
-def createPassNetworks(matches_df, events_df, matchId, teamId, team, opponent, venue,
+def createPassNetworks(match_data, matches_df, events_df, team,
                        pitch_color, max_lw, marker_size, marker_color):
     """
     
 
     Parameters
     ----------
+    match_data : Data containing everything about the match
+    
     matches_df : DataFrame containing match data.
     
     events_df : DataFrame containing event data for that match.
     
-    matchId : ID of the match.
-    
-    teamId : ID of the required team.
-    
     team : Name of the required team.
     
-    opponent : Name of the opponent team.
-    
-    venue : Home or Away.
 
     
     Returns
@@ -88,12 +83,28 @@ def createPassNetworks(matches_df, events_df, matchId, teamId, team, opponent, v
     Pitch Plot.
     """
     
+    matchId = match_data['matchId']
+
+    
+    # getting team id and venue
+    if match_data['home']['name'] == team:
+        teamId = match_data['home']['teamId']
+        venue = 'home'
+    else:
+        teamId = match_data['away']['teamId']
+        venue = 'away'
+        
+    # getting opponent   
+    if venue == 'home':
+        opponent = match_data['away']['name']
+    else:
+        opponent = match_data['home']['name']
+    
     team_players_dict = {}
     for player in matches_df[venue][matchId]['players']:
         team_players_dict[player['playerId']] = player['name']
     
-    match_events_df = events_df.loc[events_df['matchId'] == matchId].reset_index(drop=True)
-    passes_df = match_events_df.loc[[row['displayName'] == 'Pass' for row in list(match_events_df['type'])]].reset_index(drop=True)
+    passes_df = events_df.loc[[row['displayName'] == 'Pass' for row in list(events_df['type'])]].reset_index(drop=True)
     passes_df = passes_df.loc[passes_df['teamId'] == teamId].reset_index().drop('index', axis=1)
     passes_df = passes_df.loc[[row['displayName'] == 'Successful' for row in list(passes_df['outcomeType'])]].reset_index(drop=True)
     

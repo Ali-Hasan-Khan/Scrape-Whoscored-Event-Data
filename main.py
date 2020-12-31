@@ -19,7 +19,11 @@ from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.chrome.options import Options
 from selenium.common.exceptions import NoSuchElementException
 
-
+import sys
+# add path to the "LaurieOnTracking-master" repo folder on your system
+sys.path.append("../../../Football Data Analysis/LaurieOnTracking-master")
+import Metrica_EPV as mepv
+import numpy as np
 
 
 def getLeagueLinks(main_url):
@@ -244,6 +248,55 @@ def createMatchesDF(data):
 
 
 
+
+
+
+def to_metric_coordinates_from_whoscored(data,field_dimen=(106.,68.) ):
+    '''
+    Convert positions from Whoscored units to meters (with origin at centre circle)
+    '''
+    x_columns = [c for c in data.columns if c[-1].lower()=='x'][:2]
+    y_columns = [c for c in data.columns if c[-1].lower()=='y'][:2]
+    x_columns_mod = [c+'_metrica' for c in x_columns]
+    y_columns_mod = [c+'_metrica' for c in y_columns]
+    data[x_columns_mod] = (data[x_columns]/100*106)-53
+    data[y_columns_mod] = (data[y_columns]/100*68)-34
+    #data[x_columns_mod] = data[x_columns]/100*1.06
+    #data[y_columns_mod] = data[y_columns]/100*1.06
+    #data[x_columns_mod] = ( data[x_columns_mod]-0.5 ) * field_dimen[0]
+    #data[y_columns_mod] = ( data[y_columns_mod]-0.5 ) * field_dimen[1]
+    
+    return data
+
+
+
+
+def addEpvToDataFrame(data,EPV):
+    EPV_start = []
+    EPV_end = []
+    EPV_difference = []
+    for i,row in data.iterrows():
+        if row['type']['displayName'] == 'Pass' and row['outcomeType']['value'] == 1:
+            start_pos = (row['x_metrica'], row['y_metrica'])
+            start_epv = mepv.get_EPV_at_location(start_pos,EPV,attack_direction=1)
+            EPV_start.append(start_epv)
+            
+            end_pos = (row['endX_metrica'], row['endY_metrica'])
+            end_epv = mepv.get_EPV_at_location(end_pos,EPV,attack_direction=1)
+            EPV_end.append(end_epv)
+            
+            diff = end_epv - start_epv
+            EPV_difference.append(diff)
+            
+        else:
+            EPV_start.append(np.nan)
+            EPV_end.append(np.nan)
+            EPV_difference.append(np.nan)
+    
+    data = data.assign(EPV_start = EPV_start,
+                       EPV_end = EPV_end,
+                       EPV_difference = EPV_difference)
+    return data
 
 
 

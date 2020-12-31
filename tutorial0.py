@@ -8,7 +8,7 @@ Created on Wed Oct 14 14:28:34 2020
 
 """
 Tutorial on getting Event Data for a single match, 
-with some visualization examples.
+with some visualization examples and extra features.
 """
 
 
@@ -21,27 +21,22 @@ import visuals
 
 
 
-# Get Match Data  (Run from line 29 to line 35 together)   
+###     Get Match Data  (Run from line 29 to line 35 together)      ###         
 if __name__ == "__main__":
     driver = webdriver.Chrome('chromedriver.exe')
-    
     
 # whoscored match centre url of the required match (Example: Barcelona vs Sevilla)
 url = "https://www.whoscored.com/Matches/1491995/Live/Spain-LaLiga-2020-2021-Barcelona-Sevilla"
 match_data = main.getMatchData(driver, url)
 
-
 # Match dataframe containing info about the match
 matches_df = main.createMatchesDF(match_data)
-
 
 # Events dataframe      
 events_df = main.createEventsDF(match_data)
 
-
 # match Id
 matchId = match_data['matchId']
-
 
 # Information about respective taems as dictionary
 home_data = matches_df['home'][matchId]
@@ -49,22 +44,44 @@ away_data = matches_df['away'][matchId]
 
 
 
-# Pass Network Example from Barcelona vs Sevilla game     
+
+
+###     Get EPV for successful passes     ###
+import sys
+sys.path.append("../../../Football Data Analysis/LaurieOnTracking-master")
+import Metrica_EPV as mepv
+
+EPV = mepv.load_EPV_grid('../../../Football Data Analysis/LaurieOnTracking-master/EPV_grid.csv')
+events_df = main.to_metric_coordinates_from_whoscored(events_df)
+events_df = main.addEpvToDataFrame(events_df,EPV)
+
+
+
+
+
+###     Pass Network Example from Barcelona vs Sevilla game     ###
 team = 'Barcelona'
 teamId = 65
 opponent = 'Sevilla'
 venue = 'home'
 
 # Create Pass Network     
-visuals.createPassNetworks(matches_df, events_df, matchId, teamId, team, opponent, venue,
-                   pitch_color='#000000', max_lw=18, marker_size=2000, marker_color='#6a009c')
+visuals.createPassNetworks(match_data, matches_df, events_df, team='Barcelona',
+                           pitch_color='#000000', max_lw=18, marker_size=2000, 
+                           marker_color='#6a009c')
 
 
-# Get Team Total Passes
+
+
+
+###     Get Team Total Passes     ###
 visuals.getTeamTotalPasses(events_df, teamId, team, opponent, pitch_color='#000000')
 
 
-# Get Completed Box Passes by Team
+
+
+
+###     Get Completed Box Passes by Team    ###
 #You can select more cmaps here: https://matplotlib.org/3.1.0/tutorials/colors/colormaps.html
 visuals.getTeamSuccessfulBoxPasses(events_df, teamId, team, pitch_color='#000000', cmap='YlGn')
 
@@ -72,10 +89,9 @@ visuals.getTeamSuccessfulBoxPasses(events_df, teamId, team, pitch_color='#000000
 
 
 
-### Get Passes For Different Durations ###
-
+###     Get Passes For Different Durations     ###
 team_players_dict = {}
-for player in matches_df['home'][data['matchId']]['players']:
+for player in matches_df['home'][match_data['matchId']]['players']:
     team_players_dict[player['playerId']] = player['name'] 
     
 # Total Passes
@@ -84,11 +100,9 @@ passes_df = passes_df.loc[[row['displayName'] == 'Successful' for row in list(pa
 passes_df = passes_df.loc[passes_df['teamId'] == teamId].reset_index(drop=True)
 passes_df.insert(27, column='playerName', value=[team_players_dict[i] for i in list(passes_df['playerId'])])
 
-
 # Cut in 2
 first_half_passes = passes_df.loc[[row['displayName'] == 'FirstHalf' for row in list(passes_df['period'])]]
 second_half_passes = passes_df.loc[[row['displayName'] == 'SecondHalf' for row in list(passes_df['period'])]].reset_index(drop=True)
-
 
 # Cut in 4 (quarter = 25 mins)
 first_quarter = first_half_passes.loc[first_half_passes['minute'] <= 25]
@@ -100,8 +114,26 @@ fourth_quarter = second_half_passes.loc[second_half_passes['minute'] > 70].reset
 
 
 
-# Get Shot map for a team
+###    Get Shot map for a team    ###
 visuals.createShotmap(match_data, events_df, team='Sevilla', pitchcolor='black', shotcolor='white', goalcolor='red', titlecolor='white', legendcolor='white', marker_size=500)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
