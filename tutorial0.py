@@ -7,7 +7,7 @@ Created on Wed Oct 14 14:28:34 2020
 """
 
 """
-Tutorial on getting Event Data for a single match, 
+Tutorial on getting hands on the event data for a single match, 
 with some visualization examples and extra features.
 """
 
@@ -59,7 +59,7 @@ events_df = main.addEpvToDataFrame(events_df,EPV)
 
 
 
-###     Pass Network Example from Barcelona vs Sevilla game     ###
+###     Pass Network Examples from Barcelona vs Sevilla game     ###
 team = 'Barcelona'
 teamId = 65
 opponent = 'Sevilla'
@@ -71,6 +71,11 @@ visuals.createPassNetworks(match_data, matches_df, events_df, team='Barcelona',
                            marker_color='#6a009c')
 
 
+
+# Create Progressive Pass Network
+visuals.createAttPassNetworks(match_data, matches_df, events_df, team='Barcelona', 
+                              pitch_color='#000000', max_lw=18, marker_size=2000, 
+                              marker_color='#6a009c')
 
 
 
