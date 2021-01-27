@@ -76,7 +76,14 @@ def createPassNetworks(match_data, matches_df, events_df, team,
     
     team : Name of the required team.
     
-
+    pitch_color : color of the pitch and figure.
+    
+    max_lw : maximum line width of network lines.
+    
+    marker_size : size of the circle markers.
+    
+    marker_color : color of the circle markers.
+    
     
     Returns
     -------
@@ -197,6 +204,190 @@ def createPassNetworks(match_data, matches_df, events_df, team,
 
 
 
+    
+    
+    
+    
+    
+    
+def createAttPassNetworks(match_data, matches_df, events_df, team, pitch_color, max_lw, 
+                          marker_size, marker_color):
+    
+    """
+    
+
+    Parameters
+    ----------
+    match_data : Data containing everything about the match
+    
+    matches_df : DataFrame containing match data.
+    
+    events_df : DataFrame containing event data for that match.
+    
+    team : Name of the required team.
+    
+    pitch_color : color of the pitch and figure.
+    
+    max_lw : maximum line width of network lines.
+    
+    marker_size : size of the circle markers.
+    
+    marker_color : color of the circle markers.
+
+    
+    Returns
+    -------
+    Pitch Plot.
+    """
+        
+        
+    # getting match_id
+    matchId = match_data['matchId']
+    
+    
+    # getting team id and venue
+    if match_data['home']['name'] == team:
+        teamId = match_data['home']['teamId']
+        venue = 'home'
+    else:
+        teamId = match_data['away']['teamId']
+        venue = 'away'
+    
+    
+    # getting opponent   
+    if venue == 'home':
+        opponent = match_data['away']['name']
+    else:
+        opponent = match_data['home']['name']
+    
+    
+    # getting player dictionary
+    team_players_dict = {}
+    for player in match_data[venue]['players']:
+        team_players_dict[player['playerId']] = player['name']
+    
+    
+    # getting minute of first substitution
+    for i,row in events_df.iterrows():
+        if row['type']['displayName'] == 'SubstitutionOn' and row['teamId'] == teamId:
+            sub_minute = str(row['minute'])
+            break
+    
+    
+    # getting players dataframe
+    match_players_df = pd.DataFrame()
+    player_names = []
+    player_ids = []
+    player_pos = []
+    player_kit_number = []
+
+
+    for player in match_data[venue]['players']:
+        player_names.append(player['name'])
+        player_ids.append(player['playerId'])
+        player_pos.append(player['position'])
+        player_kit_number.append(player['shirtNo'])
+
+    match_players_df['playerId'] = player_ids
+    match_players_df['playerName'] = player_names
+    match_players_df['playerPos'] = player_pos
+    match_players_df['playerKitNumber'] = player_kit_number
+    
+    
+    # extracting passes
+    passes_df = events_df.loc[events_df['teamId'] == teamId].reset_index().drop('index', axis=1)
+    passes_df.dropna(subset=["playerId"], inplace=True)
+    passes_df.insert(27, column='playerName', value=[team_players_dict[i] for i in list(passes_df['playerId'])])
+    passes_df.insert(28, column='passRecipientId', value=passes_df['playerId'].shift(-1))  
+    passes_df.insert(29, column='passRecipientName', value=passes_df['playerName'].shift(-1))  
+    passes_df.dropna(subset=["passRecipientName"], inplace=True)
+    passes_df = passes_df.loc[[row['displayName'] == 'Pass' for row in list(passes_df['type'])]].reset_index(drop=True)
+    passes_df = passes_df.loc[[row['displayName'] == 'Successful' for row in list(passes_df['outcomeType'])]].reset_index(drop=True)
+    index_names = passes_df.loc[passes_df['playerName']==passes_df['passRecipientName']].index
+    passes_df.drop(index_names, inplace=True)
+    passes_df = passes_df.merge(match_players_df, on=['playerId', 'playerName'], how='left', validate='m:1')
+    passes_df = passes_df.merge(match_players_df.rename({'playerId': 'passRecipientId', 'playerName':'passRecipientName'},
+                                                        axis='columns'), on=['passRecipientId', 'passRecipientName'],
+                                                        how='left', validate='m:1', suffixes=['', 'Receipt'])
+    passes_df = passes_df[passes_df['playerPos'] != 'Sub']
+    
+    
+    # getting team formation
+    formation = match_data[venue]['formations'][0]['formationName']
+    formation = '-'.join(formation)
+    
+    
+    # getting player average locations
+    location_formation = passes_df[['playerKitNumber', 'x', 'y']]
+    average_locs_and_count = location_formation.groupby('playerKitNumber').agg({'x': ['mean'], 'y': ['mean', 'count']})
+    average_locs_and_count.columns = ['x', 'y', 'count']
+    
+    
+    # filtering progressive passes 
+    passes_df = passes_df.loc[passes_df['EPV_difference'] > 0]
+
+    
+    # getting separate dataframe for selected columns 
+    passes_formation = passes_df[['id', 'playerKitNumber', 'playerKitNumberReceipt']].copy()
+    passes_formation['EPV'] = passes_df['EPV_difference']
+
+
+    # getting dataframe for passes between players
+    passes_between = passes_formation.groupby(['playerKitNumber', 'playerKitNumberReceipt']).agg({ 'id' : 'count', 'EPV' : 'sum'}).reset_index()
+    passes_between.rename({'id': 'pass_count'}, axis='columns', inplace=True)
+    passes_between = passes_between.merge(average_locs_and_count, left_on='playerKitNumberReceipt', right_index=True)
+    passes_between = passes_between.merge(average_locs_and_count, left_on='playerKitNumber', right_index=True,
+                                          suffixes=['', '_end'])
+    
+    
+    # filtering passes
+    pass_filter = int(passes_between['pass_count'].mean())
+    passes_between = passes_between.loc[passes_between['pass_count'] > pass_filter*2]
+
+    
+    # calculating the line width 
+    max_line_width = max_lw
+    passes_between['width'] = passes_between.pass_count / passes_between.pass_count.max() * max_line_width
+    passes_between = passes_between.reset_index(drop=True)
+    
+    
+    # setting color to make the lines more transparent when fewer passes are made
+    min_transparency = 0.3
+    color = np.array(to_rgba('white'))
+    color = np.tile(color, (len(passes_between), 1))
+    c_transparency = passes_between.EPV / passes_between.EPV.max()
+    c_transparency = (c_transparency * (1 - min_transparency)) + min_transparency
+    color[:, 3] = c_transparency
+    passes_between['alpha'] = color.tolist()
+    
+    
+    
+    # plotting
+    pitch = Pitch(pitch_type='statsbomb', orientation='horizontal',
+                  pitch_color=pitch_color, line_color='#c7d5cc', figsize=(16, 11),
+                  constrained_layout=True, tight_layout=False)
+    fig, ax = pitch.draw()
+    
+    average_locs_and_count['zorder'] = list(np.linspace(2,6,11, dtype='int'))
+    pitch.lines(passes_between.x/100*120, 80-passes_between.y/100*80,
+                passes_between.x_end/100*120, 80-passes_between.y_end/100*80, lw=passes_between.width,
+                color=color, zorder=1, ax=ax)
+    for index, row in average_locs_and_count.iterrows():
+        pitch.scatter(row.x/100*120, 80-row.y/100*80, s=marker_size,
+                      color=marker_color, edgecolors='black', linewidth=1, 
+                      alpha=1, zorder=row.zorder, ax=ax)
+    
+    
+    for index, row in average_locs_and_count.iterrows():
+        pitch.annotate(row.name, xy=(row.x/100*120, 80-row.y/100*80), family='DejaVu Sans', c='white', 
+                       va='center', ha='center', zorder=row.zorder, size=20, weight='bold', ax=ax)
+    ax.set_title("{} Progressive Pass Network vs {}".format(team, opponent), size=15, y=0.97, color='#c7d5cc')
+    fig.set_facecolor(pitch_color)
+    #ax.text(2, 78, '{}'.format(formation), size=9, c='grey')
+    #plt.savefig(f'visualisations\{team} Progressive Pass Network vs {opponent}.png', facecolor=fig.get_facecolor(), edgecolor='none')
+
+    
+    
 
 
 
