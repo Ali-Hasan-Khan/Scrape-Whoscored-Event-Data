@@ -10,6 +10,7 @@ import pandas as pd
 import numpy as np
 from mplsoccer.pitch import Pitch
 from matplotlib.colors import to_rgba
+import seaborn as sns
 
 
 def createShotmap(match_data, events_df, team, pitchcolor, shotcolor, goalcolor, titlecolor, legendcolor, marker_size):
