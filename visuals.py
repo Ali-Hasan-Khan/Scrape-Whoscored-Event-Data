@@ -545,3 +545,132 @@ def getTeamTotalPasses(events_df, teamId, team, opponent, pitch_color):
     # Set the figure facecolor
     
     fig.set_facecolor(pitch_color)
+    
+    
+    
+    
+    
+
+def normalize(values, bounds):
+    return [bounds['desired']['lower'] + (x - bounds['actual']['lower']) * (bounds['desired']['upper'] 
+            - bounds['desired']['lower']) / (bounds['actual']['upper'] - bounds['actual']['lower']) for x in values]
+
+
+
+
+    
+def createPVFormationMap(match_data, events_df, team, color_palette,
+                        markerstyle, markersize, markeredgewidth, labelsize, labelcolor):
+    
+    # getting team id and venue
+    if match_data['home']['name'] == team:
+        teamId = match_data['home']['teamId']
+        venue = 'home'
+    else:
+        teamId = match_data['away']['teamId']
+        venue = 'away'
+
+
+    # getting opponent   
+    if venue == 'home':
+        opponent = match_data['away']['name']
+    else:
+        opponent = match_data['home']['name']
+
+
+    # getting player dictionary
+    team_players_dict = {}
+    for player in match_data[venue]['players']:
+        team_players_dict[player['playerId']] = player['name']
+
+
+    # getting minute of first substitution
+    for i,row in events_df.iterrows():
+        if row['type']['displayName'] == 'SubstitutionOn' and row['teamId'] == teamId:
+            sub_minute = str(row['minute'])
+            break
+
+
+    # getting players dataframe
+    match_players_df = pd.DataFrame()
+    player_names = []
+    player_ids = []
+    player_pos = []
+    player_kit_number = []
+
+    for player in match_data[venue]['players']:
+        player_names.append(player['name'])
+        player_ids.append(player['playerId'])
+        player_pos.append(player['position'])
+        player_kit_number.append(player['shirtNo'])
+
+    match_players_df['playerId'] = player_ids
+    match_players_df['playerName'] = player_names
+    match_players_df['playerPos'] = player_pos
+    match_players_df['playerKitNumber'] = player_kit_number
+
+
+    # extracting passes
+    passes_df = events_df.loc[events_df['teamId'] == teamId].reset_index().drop('index', axis=1)
+    passes_df.dropna(subset=["playerId"], inplace=True)
+    passes_df.insert(27, column='playerName', value=[team_players_dict[i] for i in list(passes_df['playerId'])])
+    passes_df.insert(28, column='passRecipientId', value=passes_df['playerId'].shift(-1))  
+    passes_df.insert(29, column='passRecipientName', value=passes_df['playerName'].shift(-1))  
+    passes_df.dropna(subset=["passRecipientName"], inplace=True)
+    passes_df = passes_df.loc[[row['displayName'] == 'Pass' for row in list(passes_df['type'])]].reset_index(drop=True)
+    passes_df = passes_df.loc[[row['displayName'] == 'Successful' for row in list(passes_df['outcomeType'])]].reset_index(drop=True)
+    index_names = passes_df.loc[passes_df['playerName']==passes_df['passRecipientName']].index
+    passes_df.drop(index_names, inplace=True)
+    passes_df = passes_df.merge(match_players_df, on=['playerId', 'playerName'], how='left', validate='m:1')
+    passes_df = passes_df.merge(match_players_df.rename({'playerId': 'passRecipientId', 'playerName':'passRecipientName'},
+                                                    axis='columns'), on=['passRecipientId', 'passRecipientName'],
+                                                    how='left', validate='m:1', suffixes=['', 'Receipt'])
+    #passes_df = passes_df[passes_df['playerPos'] != 'Sub']
+    
+    
+    # Getting net possesion value for passes
+    netPVPassed = passes_df.groupby(['playerId', 'playerName'])['EPV_difference'].sum().reset_index()
+    netPVReceived = passes_df.groupby(['passRecipientId', 'passRecipientName'])['EPV_difference'].sum().reset_index()
+    
+
+    
+    # Getting formation and player ids for first 11
+    formation = match_data[venue]['formations'][0]['formationName']
+    formation_positions = match_data[venue]['formations'][0]['formationPositions']
+    playerIds = match_data[venue]['formations'][0]['playerIds'][:11]
+
+    
+    # Getting all data in a dataframe
+    formation_data = []
+    for playerId, pos in zip(playerIds, formation_positions):
+        pl_dict = {'playerId': playerId}
+        pl_dict.update(pos)
+        formation_data.append(pl_dict)
+    formation_data = pd.DataFrame(formation_data)
+    formation_data['vertical'] = normalize(formation_data['vertical'], 
+                                           {'actual': {'lower': 0, 'upper': 10}, 'desired': {'lower': 10, 'upper': 110}})
+    formation_data['horizontal'] = normalize(formation_data['horizontal'],
+                                             {'actual': {'lower': 0, 'upper': 10}, 'desired': {'lower': 80, 'upper': 0}})
+    formation_data = netPVPassed.join(formation_data.set_index('playerId'), on='playerId', how='inner').reset_index(drop=True)
+    formation_data = formation_data.rename(columns={"EPV_difference": "PV"})
+
+
+    # Plotting
+    pitch = Pitch(pitch_type='statsbomb', orientation='horizontal',
+                  pitch_color='#171717', line_color='#5c5c5c', figsize=(16, 11),
+                  tight_layout=True, goal_type='box')
+    fig, ax = pitch.draw()
+    
+    sns.scatterplot(x='vertical', y='horizontal', data=formation_data, hue='PV', s=markersize, marker=markerstyle, legend=False, 
+                    palette=color_palette, linewidth=markeredgewidth, ax=ax)
+    
+    ax.text(2, 78, '{}'.format('-'.join(formation)), size=20, c='grey')
+    
+    for index, row in formation_data.iterrows():
+        pitch.annotate(str(round(row.PV*100,2))+'%', xy=(row.vertical, row.horizontal), c=labelcolor, va='center',
+                       ha='center', size=labelsize, zorder=2, weight='bold', ax=ax)
+        pitch.annotate(row.playerName, xy=(row.vertical, row.horizontal+5), c=labelcolor, va='center',
+                       ha='center', size=labelsize, zorder=2, weight='bold', ax=ax)
+        
+        
+
