@@ -126,6 +126,10 @@ visuals.createShotmap(match_data, events_df, team='Sevilla', pitchcolor='black',
 
 
 
+###    Get Net PV formation map for a team    ###
+# Choose your color palette from here: https://seaborn.pydata.org/tutorial/color_palettes.html
+visuals.createPVFormationMap(match_data, events_df, team='Deportivo Alaves', color_palette=sns.color_palette("flare", as_cmap=True),
+                             markerstyle='p', markersize=4000, markeredgewidth=2, labelsize=14, labelcolor='w')
 
 
 
