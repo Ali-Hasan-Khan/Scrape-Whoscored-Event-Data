@@ -63,7 +63,7 @@ def createShotmap(match_data, events_df, team, pitchcolor, shotcolor, goalcolor,
 
 
 def createPassNetworks(match_data, matches_df, events_df, team,
-                       pitch_color, max_lw, marker_size, marker_color):
+                       pitch_color, max_lw, marker_size, marker_color, marker_label='kit_no', marker_label_size=20):
     """
     
 
@@ -111,6 +111,10 @@ def createPassNetworks(match_data, matches_df, events_df, team,
     team_players_dict = {}
     for player in matches_df[venue][matchId]['players']:
         team_players_dict[player['playerId']] = player['name']
+    
+    team_playerskitno_dict = {}
+    for player in matches_df[venue][matchId]['players']:
+        team_playerskitno_dict[player['shirtNo']] = player['name']
     
     passes_df = events_df.loc[[row['displayName'] == 'Pass' for row in list(events_df['type'])]].reset_index(drop=True)
     passes_df = passes_df.loc[passes_df['teamId'] == teamId].reset_index().drop('index', axis=1)
@@ -184,6 +188,12 @@ def createPassNetworks(match_data, matches_df, events_df, team,
     c_transparency = (c_transparency * (1 - min_transparency)) + min_transparency
     color[:, 3] = c_transparency
     
+    
+    # Plotting name on markers
+    if marker_label == 'name':
+        average_locs_and_count.index = average_locs_and_count.index.map(team_playerskitno_dict)
+
+    
     ##############################################################################
     # Plotting
     
@@ -198,7 +208,7 @@ def createPassNetworks(match_data, matches_df, events_df, team,
     pitch.scatter(average_locs_and_count.x/100*120, 80-average_locs_and_count.y/100*80, s=marker_size,
                   color=marker_color, edgecolors='black', linewidth=1, alpha=1, ax=ax)
     for index, row in average_locs_and_count.iterrows():
-        pitch.annotate(row.name, xy=(row.x/100*120, 80-row.y/100*80), c='white', va='center', ha='center', size=20, weight='bold', ax=ax)
+        pitch.annotate(row.name, xy=(row.x/100*120, 80-row.y/100*80), c='white', va='center', ha='center', size=marker_label_size, weight='bold', ax=ax)
     ax.set_title("{} Pass Network vs {}".format(team, opponent), size=15, y=0.97, color='#c7d5cc')
     fig.set_facecolor(pitch_color)
     #plt.savefig(f'visualisations\{team} Pass Network vs {opponent}.png', facecolor=fig.get_facecolor(), edgecolor='none')
@@ -212,7 +222,7 @@ def createPassNetworks(match_data, matches_df, events_df, team,
     
     
 def createAttPassNetworks(match_data, matches_df, events_df, team, pitch_color, max_lw, 
-                          marker_size, marker_color):
+                          marker_size, marker_color, marker_label='kit_no', marker_label_size=20):
     
     """
     
@@ -266,6 +276,12 @@ def createAttPassNetworks(match_data, matches_df, events_df, team, pitch_color, 
     team_players_dict = {}
     for player in match_data[venue]['players']:
         team_players_dict[player['playerId']] = player['name']
+        
+        
+    # getting player dictionary with kit no
+    team_playerskitno_dict = {}
+    for player in matches_df[venue][matchId]['players']:
+        team_playerskitno_dict[player['shirtNo']] = player['name']
     
     
     # getting minute of first substitution
@@ -362,6 +378,10 @@ def createAttPassNetworks(match_data, matches_df, events_df, team, pitch_color, 
     passes_between['alpha'] = color.tolist()
     
     
+    # Plotting name on markers
+    if marker_label == 'name':
+        average_locs_and_count.index = average_locs_and_count.index.map(team_playerskitno_dict)
+    
     
     # plotting
     pitch = Pitch(pitch_type='statsbomb', orientation='horizontal',
@@ -381,7 +401,7 @@ def createAttPassNetworks(match_data, matches_df, events_df, team, pitch_color, 
     
     for index, row in average_locs_and_count.iterrows():
         pitch.annotate(row.name, xy=(row.x/100*120, 80-row.y/100*80), family='DejaVu Sans', c='white', 
-                       va='center', ha='center', zorder=row.zorder, size=20, weight='bold', ax=ax)
+                       va='center', ha='center', zorder=row.zorder, size=marker_label_size, weight='bold', ax=ax)
     ax.set_title("{} Progressive Pass Network vs {}".format(team, opponent), size=15, y=0.97, color='#c7d5cc')
     fig.set_facecolor(pitch_color)
     #ax.text(2, 78, '{}'.format(formation), size=9, c='grey')
