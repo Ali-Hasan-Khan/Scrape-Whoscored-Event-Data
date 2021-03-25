@@ -11,6 +11,8 @@ import pandas as pd
 import json
 from bs4 import BeautifulSoup as soup
 from tqdm import trange
+import re 
+from collections import OrderedDict
 
 
 from selenium import webdriver
@@ -156,33 +158,60 @@ def getTeamData(team_links):
 
 
 
+
 def getMatchData(driver, url):
     driver.get(url)
 
-    element = driver.find_element_by_xpath('//*[@id="layout-wrapper"]/script[1]')
-    script_content = element.get_attribute('innerHTML')
-    script_ls = script_content.split(sep="  ")
-    script_ls = list(filter(None, script_ls))
-    script_ls = [name for name in script_ls if name.strip()]
-    script_ls_mod = []
-    keys = []
-    for item in script_ls:
-        if "}" in item:
-            item = item.replace(";", "")
-            script_ls_mod.append(item[item.index("{"):])
-            keys.append(item.split()[1])
-        else:
-            item = item.replace(";", "")
-            script_ls_mod.append(int(''.join(filter(str.isdigit, item))))
-            keys.append(item.split()[1])
+    # get script data from page source
+    script_content = driver.find_element_by_xpath('//*[@id="layout-wrapper"]/script[1]').get_attribute('innerHTML')
+
+
+    # clean script content
+    script_content = re.sub(r"[\n\t]*", "", script_content)
+    script_content = script_content[script_content.index("matchId"):script_content.rindex("}")]
+
+
+    # this will give script content in list form 
+    script_content_list = list(filter(None, script_content.strip().split(',            ')))
+    metadata = script_content_list.pop(1) 
+
+
+    # string format to json format
+    match_data = json.loads(metadata[metadata.index('{'):])
+    keys = [item[:item.index(':')].strip() for item in script_content_list]
+    values = [item[item.index(':')+1:].strip() for item in script_content_list]
+    for key,val in zip(keys, values):
+        match_data[key] = json.loads(val)
+
+
+    # get other details about the match
+    region = driver.find_element_by_xpath('//*[@id="breadcrumb-nav"]/span[1]').text
+    league = driver.find_element_by_xpath('//*[@id="breadcrumb-nav"]/a').text.split(' - ')[0]
+    season = driver.find_element_by_xpath('//*[@id="breadcrumb-nav"]/a').text.split(' - ')[1]
+    if len(driver.find_element_by_xpath('//*[@id="breadcrumb-nav"]/a').text.split(' - ')) == 2:
+        competition_type = 'League'
+        competition_stage = ''
+    elif len(driver.find_element_by_xpath('//*[@id="breadcrumb-nav"]/a').text.split(' - ')) == 3:
+        competition_type = 'Knock Out'
+        competition_stage = driver.find_element_by_xpath('//*[@id="breadcrumb-nav"]/a').text.split(' - ')[-1]
+    else:
+        print('Getting more than 3 types of information about the competition.')
+
+    match_data['region'] = region
+    match_data['league'] = league
+    match_data['season'] = season
+    match_data['competitionType'] = competition_type
+    match_data['competitionStage'] = competition_stage
+
+
+    # sort match_data dictionary alphabetically
+    match_data = OrderedDict(sorted(match_data.items()))
+    match_data = dict(match_data)
+    print('Region: {}, League: {}, Season: {}, Match Id: {}'.format(region, league, season, match_data['matchId']))
     
-    match_data = json.loads(script_ls_mod[0]) 
-    for key, item in zip(keys[1:], script_ls_mod[1:]):
-        if type(item) == str:
-            match_data[key] = json.loads(item)
-        else:
-            match_data[key] = item
+    
     driver.close()
+        
     return match_data
 
 
