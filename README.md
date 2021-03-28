@@ -1,4 +1,5 @@
 # Scraping Whoscored Event Data
+![alt text](https://github.com/adam-p/markdown-here/raw/master/src/common/images/icon48.png "Whoscored")
 
 Now you can get **free** match event data from [Whoscored](http://whoscored.com/ "Whoscored")'s chalkboard using **Selenium**. 
 
@@ -12,4 +13,5 @@ Follow these steps after downloading the code:
 3) Follow **tutorial.py/tutorial.ipynb** for a quick overview.
 
 
-Reach me on twitter([@rockingAli5](https://twitter.com/rockingAli5)) if you need any help. [^1]
+
+Reach me on twitter([@rockingAli5](https://twitter.com/rockingAli5)) if you need any help. 
