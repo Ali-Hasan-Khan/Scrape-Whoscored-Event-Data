@@ -10,3 +10,6 @@ Follow these steps after downloading the code:
 2) For some manually added features and fixes replace **pitch.py** with the one present in mplsoccer folder on your machine. [**Recommended**] 
   
 3) Follow **tutorial.py/tutorial.ipynb** for a quick overview.
+
+
+Reach me on twitter([@rockingAli5](https://twitter.com/rockingAli5)) if you need any help. [^1]
