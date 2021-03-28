@@ -3,7 +3,8 @@
 Now you can get **free** match event data from [Whoscored](http://whoscored.com/ "Whoscored")'s chalkboard using **Selenium**. 
 
 Follow these steps after downloading the code:
-  1) Install these packages: [**Required**]
+  1) Install these packages[**Required**]: 
+    
     1. [Selenium](https://selenium-python.readthedocs.io/) (Web scraping tool)
     2. [mplsoccer](https://mplsoccer.readthedocs.io/en/latest/) (Amazing python library for drawing soccer/football pitches in Matplotlib)
 
