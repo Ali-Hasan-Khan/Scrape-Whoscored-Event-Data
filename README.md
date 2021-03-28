@@ -1,15 +1,12 @@
-# Scrape-Whoscored-Event-Data
+# Scraping Whoscored Event Data
 
-Get Match Event Data from [Whoscored](http://whoscored.com/ "Whoscored") using **Selenium** webdriver.  
+Now you can get **free** match event data from [Whoscored](http://whoscored.com/ "Whoscored")'s chalkboard using **Selenium**. 
 
-**_Required modules :_**
-* Selenium
-* tqdm
-* mplsoccer
+Follow these few steps after downloading the code:
+  1) Install these packages(**Required**):
+    * [Selenium](https://selenium-python.readthedocs.io/) (Web scraping tool)
+    * [mplsoccer](https://mplsoccer.readthedocs.io/en/latest/) (Amazing python library for drawing soccer/football pitches in Matplotlib)
 
-**IMPORTANT!!**
-Replace pitch.py at the given location with the new file(**_pitch.py_**) in repo:
-  'C:\Users\Your Username\anaconda3\Lib\site-packages\mplsoccer'
+  2) For some manually added features and fixes replace **pitch.py** with the one present in mplsoccer folder on your machine. (**Recommended**) 
   
-  
-## Follow *tutorial0.py* or *tutorial.ipynb* for a quick overview.
+**Follow *tutorial.py/tutorial.ipynb* for a quick overview.**
