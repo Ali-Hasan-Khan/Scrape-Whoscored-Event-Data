@@ -8,7 +8,7 @@ Follow these steps after downloading the code:
     - [Selenium](https://selenium-python.readthedocs.io/) (Web scraping tool)
     - [mplsoccer](https://mplsoccer.readthedocs.io/en/latest/) (Amazing python library for drawing soccer/football pitches in Matplotlib)
 
-2) For some manually added features and fixes replace **pitch.py** with the one present in mplsoccer folder on your machine (somewhere here: C:\Users\\<user>\anaconda3\Lib\site-packages\mplsoccer). [**Recommended**] 
+2) For some manually added features and fixes replace **pitch.py** with the one present in mplsoccer folder on your machine (somewhere here: C:\Users\<<user>>\anaconda3\Lib\site-packages\mplsoccer). [**Recommended**] 
   
 3) Follow **tutorial.py/tutorial.ipynb** for a quick overview.
 
