@@ -7,8 +7,9 @@ Created on Wed Oct 14 14:28:34 2020
 """
 
 """
-Tutorial on getting hands on the event data for a single match, 
-with some visualization examples and extra features.
+Tutorial on getting hands on the event data for a single match.
+
+New: Now added xG data for shots from Understat.com(only available for top 5 european leagues since 2014-15).
 """
 
 
@@ -28,13 +29,16 @@ if __name__ == "__main__":
     
 # whoscored match centre url of the required match (Example: Barcelona vs Sevilla)
 url = "https://www.whoscored.com/Matches/1491995/Live/Spain-LaLiga-2020-2021-Barcelona-Sevilla"
-match_data = main.getMatchData(driver, url)
+match_data = main.getMatchData(driver, url, close_window=False)
 
 # Match dataframe containing info about the match
 matches_df = main.createMatchesDF(match_data)
 
 # Events dataframe      
 events_df = main.createEventsDF(match_data)
+
+# Add xG data to events dataframe
+events_df = main.getxGFromUnderstat(match_data, events_df, driver)
 
 # match Id
 matchId = match_data['matchId']
