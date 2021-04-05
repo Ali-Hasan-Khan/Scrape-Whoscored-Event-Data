@@ -29,7 +29,6 @@ import Metrica_EPV as mepv
 ###     Get Match Data  (Run from line 29 to line 35 together)      ###         
 if __name__ == "__main__":
     driver = webdriver.Chrome('chromedriver.exe')
-    driver.minimize_window()
     
 # whoscored match centre url of the required match (Example: Barcelona vs Sevilla)
 url = "https://www.whoscored.com/Matches/1491995/Live/Spain-LaLiga-2020-2021-Barcelona-Sevilla"
