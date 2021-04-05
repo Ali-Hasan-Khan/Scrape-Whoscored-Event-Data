@@ -19,6 +19,9 @@ from selenium import webdriver
 import main
 import visuals
 import seaborn as sns
+import sys
+sys.path.append("../../../Football Data Analysis/LaurieOnTracking-master")
+import Metrica_EPV as mepv
 
 
 
@@ -26,6 +29,7 @@ import seaborn as sns
 ###     Get Match Data  (Run from line 29 to line 35 together)      ###         
 if __name__ == "__main__":
     driver = webdriver.Chrome('chromedriver.exe')
+    driver.minimize_window()
     
 # whoscored match centre url of the required match (Example: Barcelona vs Sevilla)
 url = "https://www.whoscored.com/Matches/1491995/Live/Spain-LaLiga-2020-2021-Barcelona-Sevilla"
@@ -52,10 +56,6 @@ away_data = matches_df['away'][matchId]
 
 
 ###     Get EPV for successful passes     ###
-import sys
-sys.path.append("../../../Football Data Analysis/LaurieOnTracking-master")
-import Metrica_EPV as mepv
-
 EPV = mepv.load_EPV_grid('../../../Football Data Analysis/LaurieOnTracking-master/EPV_grid.csv')
 events_df = main.to_metric_coordinates_from_whoscored(events_df)
 events_df = main.addEpvToDataFrame(events_df,EPV)
