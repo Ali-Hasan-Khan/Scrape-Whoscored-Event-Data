@@ -69,17 +69,19 @@ teamId = 65
 opponent = 'Sevilla'
 venue = 'home'
 
-# Create Pass Network     
+# Create Pass Network
+# you can change marker_label to 'name' as well
 visuals.createPassNetworks(match_data, matches_df, events_df, team='Barcelona',
                            pitch_color='#000000', max_lw=18, marker_size=2000, 
-                           marker_color='#6a009c')
+                           marker_color='#6a009c', marker_label='kit_no', marker_label_size=20)
 
 
 
 # Create Progressive Pass Network
+# you can change marker_label to 'name' as well
 visuals.createAttPassNetworks(match_data, matches_df, events_df, team='Barcelona', 
                               pitch_color='#000000', max_lw=18, marker_size=2000, 
-                              marker_color='#6a009c')
+                              marker_color='#6a009c', marker_label='kit_no', marker_label_size=20)
 
 
 

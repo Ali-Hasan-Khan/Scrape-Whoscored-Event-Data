@@ -92,6 +92,7 @@ def createPassNetworks(match_data, matches_df, events_df, team,
     """
     
     matchId = match_data['matchId']
+    
 
     
     # getting team id and venue
@@ -120,7 +121,9 @@ def createPassNetworks(match_data, matches_df, events_df, team,
     passes_df = passes_df.loc[passes_df['teamId'] == teamId].reset_index().drop('index', axis=1)
     passes_df = passes_df.loc[[row['displayName'] == 'Successful' for row in list(passes_df['outcomeType'])]].reset_index(drop=True)
     
-    
+    if 'playerName' in passes_df.columns:
+        passes_df = passes_df.drop(columns='playerName')
+        passes_df['playerId'] = passes_df['playerId'].astype(int)
             
     passes_df.insert(27, column='playerName', value=[team_players_dict[i] for i in list(passes_df['playerId'])])
     passes_df.insert(28, column='passRecipientId', value=passes_df['playerId'].shift(-1))  
@@ -314,6 +317,11 @@ def createAttPassNetworks(match_data, matches_df, events_df, team, pitch_color, 
     # extracting passes
     passes_df = events_df.loc[events_df['teamId'] == teamId].reset_index().drop('index', axis=1)
     passes_df.dropna(subset=["playerId"], inplace=True)
+    
+    if 'playerName' in passes_df.columns:
+        passes_df = passes_df.drop(columns='playerName')
+        passes_df['playerId'] = passes_df['playerId'].astype(int)
+        
     passes_df.insert(27, column='playerName', value=[team_players_dict[i] for i in list(passes_df['playerId'])])
     passes_df.insert(28, column='passRecipientId', value=passes_df['playerId'].shift(-1))  
     passes_df.insert(29, column='passRecipientName', value=passes_df['playerName'].shift(-1))  
@@ -634,6 +642,11 @@ def createPVFormationMap(match_data, events_df, team, color_palette,
     # extracting passes
     passes_df = events_df.loc[events_df['teamId'] == teamId].reset_index().drop('index', axis=1)
     passes_df.dropna(subset=["playerId"], inplace=True)
+    
+    if 'playerName' in passes_df.columns:
+        passes_df = passes_df.drop(columns='playerName')
+        passes_df['playerId'] = passes_df['playerId'].astype(int)
+        
     passes_df.insert(27, column='playerName', value=[team_players_dict[i] for i in list(passes_df['playerId'])])
     passes_df.insert(28, column='passRecipientId', value=passes_df['playerId'].shift(-1))  
     passes_df.insert(29, column='passRecipientName', value=passes_df['playerName'].shift(-1))  
