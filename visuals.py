@@ -8,7 +8,7 @@ Created on Wed Oct 14 14:38:46 2020
 
 import pandas as pd
 import numpy as np
-from mplsoccer.pitch import Pitch
+from mplsoccer.pitch import Pitch, VerticalPitch
 from matplotlib.colors import to_rgba
 import seaborn as sns
 
@@ -33,9 +33,10 @@ def createShotmap(match_data, events_df, team, pitchcolor, shotcolor, goalcolor,
     mask_goal = team_shots.isGoal == True
 
     # Setup the pitch
-    pitch = Pitch(pitch_type='statsbomb', orientation='vertical', pitch_color=pitchcolor, line_color='#c7d5cc',
-                  figsize=(16, 11), view='half', pad_top=2, tight_layout=True)
-    fig, ax = pitch.draw()
+    # orientation='vertical'
+    pitch = VerticalPitch(pitch_type='statsbomb', pitch_color=pitchcolor, line_color='#c7d5cc',
+                          figsize=(16, 11), half=True, pad_top=2)
+    fig, ax = pitch.draw(tight_layout=True)
 
 
     # Plot the goals
@@ -201,10 +202,8 @@ def createPassNetworks(match_data, matches_df, events_df, team,
     # Plotting
     
     
-    pitch = Pitch(pitch_type='statsbomb', orientation='horizontal',
-                  pitch_color=pitch_color, line_color='#c7d5cc', figsize=(16, 11),
-                  constrained_layout=True, tight_layout=False)
-    fig, ax = pitch.draw()
+    pitch = Pitch(pitch_type='statsbomb', pitch_color=pitch_color, line_color='#c7d5cc', figsize=(16, 11))
+    fig, ax = pitch.draw(constrained_layout=True, tight_layout=False)
     pitch.lines(passes_between.x/100*120, 80-passes_between.y/100*80,
                 passes_between.x_end/100*120, 80-passes_between.y_end/100*80, lw=passes_between.width,
                 color=color, zorder=1, ax=ax)
@@ -392,10 +391,8 @@ def createAttPassNetworks(match_data, matches_df, events_df, team, pitch_color, 
     
     
     # plotting
-    pitch = Pitch(pitch_type='statsbomb', orientation='horizontal',
-                  pitch_color=pitch_color, line_color='#c7d5cc', figsize=(16, 11),
-                  constrained_layout=True, tight_layout=False)
-    fig, ax = pitch.draw()
+    pitch = Pitch(pitch_type='statsbomb', pitch_color=pitch_color, line_color='#c7d5cc', figsize=(16, 11))
+    fig, ax = pitch.draw(constrained_layout=True, tight_layout=False)
     
     average_locs_and_count['zorder'] = list(np.linspace(2,6,11, dtype='int'))
     pitch.lines(passes_between.x/100*120, 80-passes_between.y/100*80,
@@ -474,15 +471,15 @@ def getTeamSuccessfulBoxPasses(events_df, teamId, team, pitch_color, cmap):
         else:
             unsuccessful_box_passes = unsuccessful_box_passes.drop([i])
         
-    
-    pitch = Pitch(pitch_type='statsbomb', orientation='vertical', pitch_color=pitch_color, line_color='#c7d5cc',
-                  figsize=(16, 11), view='half', pad_top=2, tight_layout=True)
-    fig, ax = pitch.draw()
+    # orientation='vertical'
+    pitch = VerticalPitch(pitch_type='statsbomb', pitch_color=pitch_color, line_color='#c7d5cc',
+                          figsize=(16, 11), half=True, pad_top=2)
+    fig, ax = pitch.draw(tight_layout=True)
     
     # Plot the completed passes
     pitch.lines(successful_box_passes.x/100*120, 80-successful_box_passes.y/100*80,
                 successful_box_passes.endX/100*120, 80-successful_box_passes.endY/100*80,
-                lw=5, opp_transparent=True, opp_comet=True, cmap=cmap,
+                lw=5, cmap=cmap, opp_comet=True, opp_transparent=True,
                 label='Successful Passes', ax=ax)
     
     pitch.scatter(successful_box_passes.x/100*120, 80-successful_box_passes.y/100*80,
@@ -490,10 +487,10 @@ def getTeamSuccessfulBoxPasses(events_df, teamId, team, pitch_color, cmap):
                   ax=ax)
     
     # Set the title
-    fig.suptitle(f'Completed Box Passes - {team}', fontsize=15)
+    fig.suptitle(f'Completed Box Passes - {team}', y=.95, fontsize=15)
     
     # Set the subtitle
-    ax.set_title('Data : Whoscored', fontsize=8, loc='right', fontstyle='italic', fontweight='bold')
+    ax.set_title('Data : Whoscored/Opta', fontsize=8, loc='right', fontstyle='italic', fontweight='bold')
     
     # set legend
     #ax.legend(facecolor='#22312b', edgecolor='None', fontsize=8, loc='lower center', handlelength=4)
@@ -545,10 +542,8 @@ def getTeamTotalPasses(events_df, teamId, team, opponent, pitch_color):
             unsuccessful_passes = unsuccessful_passes.drop([i])
             
     # Setup the pitch
-    pitch = Pitch(pitch_type='statsbomb', orientation='horizontal',
-                  pitch_color=pitch_color, line_color='#c7d5cc', figsize=(16, 11),
-                  constrained_layout=True, tight_layout=False)
-    fig, ax = pitch.draw()
+    pitch = Pitch(pitch_type='statsbomb', pitch_color=pitch_color, line_color='#c7d5cc', figsize=(16, 11))
+    fig, ax = pitch.draw(constrained_layout=True, tight_layout=False)
     
     # Plot the completed passes
     pitch.arrows(successful_passes.x/100*120, 80-successful_passes.y/100*80,
@@ -564,11 +559,11 @@ def getTeamTotalPasses(events_df, teamId, team, opponent, pitch_color):
     ax.legend(facecolor=pitch_color, handlelength=5, edgecolor='None', fontsize=8, loc='upper left', shadow=True)
     
     # Set the title
-    fig.suptitle(f'{team} Passes vs {opponent}', fontsize=15)
+    fig.suptitle(f'{team} Passes vs {opponent}', y=.95, fontsize=15)
     
     
     # Set the subtitle
-    ax.set_title('Data : Whoscored', fontsize=8, loc='right', fontstyle='italic', fontweight='bold')
+    ax.set_title('Data : Whoscored/Opta', fontsize=8, loc='right', fontstyle='italic', fontweight='bold')
     
     
     # Set the figure facecolor
@@ -690,10 +685,9 @@ def createPVFormationMap(match_data, events_df, team, color_palette,
 
 
     # Plotting
-    pitch = Pitch(pitch_type='statsbomb', orientation='horizontal',
-                  pitch_color='#171717', line_color='#5c5c5c', figsize=(16, 11),
-                  tight_layout=True, goal_type='box')
-    fig, ax = pitch.draw()
+    pitch = Pitch(pitch_type='statsbomb', pitch_color='#171717', line_color='#5c5c5c', figsize=(16, 11),
+                  goal_type='box')
+    fig, ax = pitch.draw(tight_layout=True)
     
     sns.scatterplot(x='vertical', y='horizontal', data=formation_data, hue='PV', s=markersize, marker=markerstyle, legend=False, 
                     palette=color_palette, linewidth=markeredgewidth, ax=ax)

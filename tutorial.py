@@ -72,16 +72,16 @@ venue = 'home'
 # Create Pass Network
 # you can change marker_label to 'name' as well
 visuals.createPassNetworks(match_data, matches_df, events_df, team='Barcelona',
-                           pitch_color='#000000', max_lw=18, marker_size=2000, 
-                           marker_color='#6a009c', marker_label='kit_no', marker_label_size=20)
+                           pitch_color='#000000', max_lw=10, marker_size=1000, 
+                           marker_color='#6a009c', marker_label='kit_no', marker_label_size=15)
 
 
 
 # Create Progressive Pass Network
 # you can change marker_label to 'name' as well
 visuals.createAttPassNetworks(match_data, matches_df, events_df, team='Barcelona', 
-                              pitch_color='#000000', max_lw=18, marker_size=2000, 
-                              marker_color='#6a009c', marker_label='kit_no', marker_label_size=20)
+                              pitch_color='#000000', max_lw=10, marker_size=1000, 
+                              marker_color='#6a009c', marker_label='kit_no', marker_label_size=15)
 
 
 
@@ -93,7 +93,9 @@ visuals.getTeamTotalPasses(events_df, teamId, team, opponent, pitch_color='#0000
 
 
 ###     Get Completed Box Passes by Team    ###
-#You can select more cmaps here: https://matplotlib.org/3.1.0/tutorials/colors/colormaps.html
+# You can select more cmaps here: https://matplotlib.org/3.1.0/tutorials/colors/colormaps.html
+# opp_transparent/opp_comet are manually added by me to this visual, you can change it in visuals.py
+# If you get an error regarding 'opp_transparent/opp_comet' you probably haven't replaced pitch.py/linecollection.py file
 visuals.getTeamSuccessfulBoxPasses(events_df, teamId, team, pitch_color='#000000', cmap='YlGn')
 
 
@@ -126,7 +128,7 @@ fourth_quarter = second_half_passes.loc[second_half_passes['minute'] > 70].reset
 
 
 ###    Get Shot map for a team    ###
-visuals.createShotmap(match_data, events_df, team='Sevilla', pitchcolor='black', shotcolor='white', goalcolor='red', titlecolor='white', legendcolor='white', marker_size=500)
+visuals.createShotmap(match_data, events_df, team='Sevilla', pitchcolor='black', shotcolor='white', goalcolor='red', titlecolor='white', legendcolor='white', marker_size=300)
 
 
 
@@ -135,7 +137,7 @@ visuals.createShotmap(match_data, events_df, team='Sevilla', pitchcolor='black',
 ###    Get Net PV formation map for a team    ###
 # Choose your color palette from here: https://seaborn.pydata.org/tutorial/color_palettes.html
 visuals.createPVFormationMap(match_data, events_df, team='Sevilla', color_palette=sns.color_palette("flare", as_cmap=True),
-                             markerstyle='p', markersize=4000, markeredgewidth=2, labelsize=14, labelcolor='w')
+                             markerstyle='h', markersize=1000, markeredgewidth=2, labelsize=7, labelcolor='w')
 
 
 
