@@ -5,10 +5,10 @@ Now you can get **FREE!!** match event data from [Whoscored](http://whoscored.co
 
 Follow these steps after downloading the code:
 1) Requirements: 
-    - [Selenium](https://selenium-python.readthedocs.io/) (Web scraping tool)
-    - [mplsoccer](https://mplsoccer.readthedocs.io/en/latest/) (Amazing python library for drawing soccer/football pitches in Matplotlib)
+    - `Selenium==3.141.0` (Web scraping tool, [docs](https://selenium-python.readthedocs.io/))
+    - `mplsoccer==1.0.2` (Amazing python library for drawing soccer/football pitches with matplotlilb, [docs](https://mplsoccer.readthedocs.io/en/latest/))
 
-2) For some manually added features and fixes replace **pitch.py** with the one present in mplsoccer folder on your machine (somewhere here: ~\anaconda3\Lib\site-packages\mplsoccer). [**Recommended**] 
+2) For some additional visual customisations replace **linecollection.py** with the one present in mplsoccer folder on your machine (somewhere here: ~\anaconda3\Lib\site-packages\mplsoccer). [**Recommended**] 
   
 3) Follow **tutorial.py/tutorial.ipynb** for a guide.
 
@@ -16,4 +16,5 @@ Follow these steps after downloading the code:
 
 
 
-Reach me on twitter([@rockingAli5](https://twitter.com/rockingAli5)) if you need any help. 
+Reach me [here](https://twitter.com/rockingAli5) for any kind of help :) 
+For any help/suggestion regarding mplsoccer reach out to the creators: [Andy](https://twitter.com/numberstorm), [Anmol](https://twitter.com/slothfulwave612).
