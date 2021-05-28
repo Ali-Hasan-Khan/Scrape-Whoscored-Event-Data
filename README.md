@@ -18,4 +18,6 @@ Follow these steps after downloading the code:
 
 Reach me [here](https://twitter.com/rockingAli5) for any kind of help :) 
 
+Special thanks to [Laurie Shaw](https://twitter.com/EightyFivePoint) for Expected Possession Value model ([check out his work here](http://eightyfivepoints.blogspot.com/)).
+
 For any help/suggestion regarding mplsoccer reach out to the creators: [Andy](https://twitter.com/numberstorm), [Anmol](https://twitter.com/slothfulwave612).
