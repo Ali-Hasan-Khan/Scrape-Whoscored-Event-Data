@@ -19,9 +19,7 @@ from selenium import webdriver
 import main
 import visuals
 import seaborn as sns
-import sys
-sys.path.append("../../../Football Data Analysis/LaurieOnTracking-master")
-import Metrica_EPV as mepv
+
 
 
 
@@ -46,7 +44,7 @@ events_df = main.getxGFromUnderstat(match_data, events_df, driver)
 # match Id
 matchId = match_data['matchId']
 
-# Information about respective taems as dictionary
+# Information about respective teams as dictionary
 home_data = matches_df['home'][matchId]
 away_data = matches_df['away'][matchId]
 
@@ -55,9 +53,7 @@ away_data = matches_df['away'][matchId]
 
 
 ###     Get EPV for successful passes     ###
-EPV = mepv.load_EPV_grid('../../../Football Data Analysis/LaurieOnTracking-master/EPV_grid.csv')
-events_df = main.to_metric_coordinates_from_whoscored(events_df)
-events_df = main.addEpvToDataFrame(events_df,EPV)
+events_df = main.addEpvToDataFrame(events_df)
 
 
 
