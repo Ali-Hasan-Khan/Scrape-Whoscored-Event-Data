@@ -59,6 +59,22 @@ events_df = main.addEpvToDataFrame(events_df)
 
 
 
+###    Get data for multiple matches    ###  
+# getting competition urls
+league_urls = main.getLeagueUrls()
+
+# getting match urls for that competition and season
+match_urls = main.getMatchUrls(comp_url=league_urls['LaLiga'], season='2020/2021')
+
+# getting match urls for a specific team
+team_urls = main.getTeamUrls(team='Barcelona', match_urls=match_urls)
+
+# getting match data for the required urls(eg. first 5 matches of Barcelona)
+matches_data = main.getMatchesData(match_urls=team_urls[:5])
+
+
+
+
 ###     Pass Network Examples from Barcelona vs Sevilla game     ###
 team = 'Barcelona'
 teamId = 65
