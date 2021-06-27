@@ -72,6 +72,14 @@ team_urls = main.getTeamUrls(team='Barcelona', match_urls=match_urls)
 # getting match data for the required urls(eg. first 5 matches of Barcelona)
 matches_data = main.getMatchesData(match_urls=team_urls[:5])
 
+# getting events dataframe for required matches
+events_ls = [main.createEventsDF(match) for match in matches_data]
+events_dfs = pd.concat(events_ls)
+
+# saving events as csv
+events_dfs.to_csv('events.csv')
+
+
 
 
 

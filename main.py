@@ -8,6 +8,7 @@ Created on Wed Oct 14 14:20:02 2020
 
 import time
 import pandas as pd
+pd.options.mode.chained_assignment = None
 import json
 from bs4 import BeautifulSoup as soup
 import re 
@@ -266,43 +267,99 @@ def getMatchData(driver, url, display=True, close_window=True):
 
 
 
-def createEventsDF(matches):
-    if type(matches) == dict:
-        events = matches['events']
-        for event in events:
-            event.update({'matchId' : matches['matchId'],
-                         'startDate' : matches['startDate'],
-                         'startTime' : matches['startTime'],
-                         'score' : matches['score'],
-                         'ftScore' : matches['ftScore'],
-                         'htScore' : matches['htScore'],
-                         'etScore' : matches['etScore'],
-                         'venueName' : matches['venueName'],
-                         'maxMinute' : matches['maxMinute']})
-        events_df = pd.DataFrame(events)
-        return events_df
-    else:
-        for i in trange(len(matches), desc='Single loop'):
-            events = matches[i]['events']
-            for event in events:
-                event.update({'matchId' : matches[i]['matchId'],
-                             'startDate' : matches[i]['startDate'],
-                             'startTime' : matches[i]['startTime'],
-                             'score' : matches[i]['score'],
-                             'ftScore' : matches[i]['ftScore'],
-                             'htScore' : matches[i]['htScore'],
-                             'etScore' : matches[i]['etScore'],
-                             'venueName' : matches[i]['venueName'],
-                             'maxMinute' : matches[i]['maxMinute']})
-        events_ls = []
-        for match in matches:
-            match_events = match['events']
-            match_events_df = pd.DataFrame(match_events)
-            events_ls.append(match_events_df)
-                
-        events_df = pd.concat(events_ls)
-        return events_df
+def createEventsDF(data):
     
+    events = data['events']
+    for event in events:
+        event.update({'matchId' : data['matchId'],
+                     'startDate' : data['startDate'],
+                     'startTime' : data['startTime'],
+                     'score' : data['score'],
+                     'ftScore' : data['ftScore'],
+                     'htScore' : data['htScore'],
+                     'etScore' : data['etScore'],
+                     'venueName' : data['venueName'],
+                     'maxMinute' : data['maxMinute']})
+    events_df = pd.DataFrame(events)
+
+
+    # clean period column
+    events_df['period'] = pd.json_normalize(events_df['period'])['displayName']
+
+    # clean type column
+    events_df['type'] = pd.json_normalize(events_df['type'])['displayName']
+
+    # clean outcomeType column
+    events_df['outcomeType'] = pd.json_normalize(events_df['outcomeType'])['displayName']
+
+    # clean outcomeType column
+    try:
+        x = events_df['cardType'].fillna({i: {} for i in events_df.index})
+        events_df['cardType'] = pd.json_normalize(x)['displayName'].fillna(False)
+    except KeyError:
+        events_df['cardType'] = False
+
+    # clean satisfiedEventTypes column
+    eventTypeDict = data['matchCentreEventTypeJson']
+    for i in range(len(events_df)):
+        row = events_df.loc[i, 'satisfiedEventsTypes'].copy()
+        events_df['satisfiedEventsTypes'].loc[i] = [list(eventTypeDict.keys())[list(eventTypeDict.values()).index(event)] for event in row]
+
+    # clean qualifiers column
+    try:
+        for i in events_df.index:
+            row = events_df.loc[i, 'qualifiers'].copy()
+            if len(row) != 0:
+                for irow in range(len(row)):
+                    row[irow]['type'] = row[irow]['type']['displayName']
+    except TypeError:
+        pass
+
+    # clean isShot column
+    if 'isShot' in events_df.columns:
+        events_df['isShot'] = events_df['isShot'].replace(np.nan, False)
+    else:
+        events_df['isShot'] = False
+
+    # clean isGoal column
+    if 'isGoal' in events_df.columns:
+        events_df['isGoal'] = events_df['isGoal'].replace(np.nan, False)
+    else:
+        events_df['isGoal'] = False
+
+    # add player name column
+    events_df.loc[events_df.playerId.notna(), 'playerId'] = events_df.loc[events_df.playerId.notna(), 'playerId'].astype(int).astype(str)    
+    player_name_col = events_df.loc[:, 'playerId'].map(data['playerIdNameDictionary']) 
+    events_df.insert(loc=events_df.columns.get_loc("playerId")+1, column='playerName', value=player_name_col)
+
+    # add home/away column
+    h_a_col = events_df['teamId'].map({data['home']['teamId']:'h', data['away']['teamId']:'a'})
+    events_df.insert(loc=events_df.columns.get_loc("teamId")+1, column='h_a', value=h_a_col)
+
+    # adding shot body part column
+    events_df['shotBodyType'] =  np.nan
+    for i in events_df.loc[events_df.isShot==True].index:
+        for j in events_df.loc[events_df.isShot==True].qualifiers.loc[i]:
+            if j['type'] == 'RightFoot' or j['type'] == 'LeftFoot' or j['type'] == 'Head' or j['type'] == 'OtherBodyPart':
+                events_df['shotBodyType'].loc[i] = j['type']
+
+    # adding shot situation column
+    events_df['situation'] =  np.nan
+    for i in events_df.loc[events_df.isShot==True].index:
+        for j in events_df.loc[events_df.isShot==True].qualifiers.loc[i]:
+            if j['type'] == 'FromCorner' or j['type'] == 'SetPiece' or j['type'] == 'DirectFreekick':
+                events_df['situation'].loc[i] = j['type']
+            if j['type'] == 'RegularPlay':
+                events_df['situation'].loc[i] = 'OpenPlay'   
+
+    # adding other event types columns
+    event_types = list(data['matchCentreEventTypeJson'].keys())
+    for event_type in event_types:
+        events_df[event_type] = pd.Series([event_type in row for row in list(events_df['satisfiedEventsTypes'])])         
+
+    return events_df
+    
+
 
 
 def createMatchesDF(data):
