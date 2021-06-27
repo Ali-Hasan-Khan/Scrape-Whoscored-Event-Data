@@ -74,13 +74,16 @@ def getLeagueUrls(minimize_window=True):
     return leagues
 
 
-        
-def getMatchUrls(comp_url, season):
+      
+def getMatchUrls(comp_url, season, maximize_window=True):
     
     driver = webdriver.Chrome('chromedriver.exe')
+    if maximize_window:
+        driver.maximize_window()
     
     # teams = []
     driver.get(comp_url)
+    time.sleep(5)
     
     seasons = driver.find_element_by_xpath('//*[@id="seasons"]').get_attribute('innerHTML').split(sep='\n')
     seasons = [i for i in seasons if i]
@@ -91,7 +94,9 @@ def getMatchUrls(comp_url, season):
     
         
     time.sleep(5)
-    fixtures_page = driver.find_element_by_xpath('//*[@id="link-fixtures"]').click()
+    fixtures_page = driver.find_element_by_xpath('//*[@id="link-fixtures"]')
+    driver.execute_script("arguments[0].scrollIntoView();", fixtures_page)
+    driver.execute_script("arguments[0].click();", fixtures_page) 
     time.sleep(5)
     date_config_btn = driver.find_element_by_xpath('//*[@id="date-config-toggle-button"]').click()
     time.sleep(5)
