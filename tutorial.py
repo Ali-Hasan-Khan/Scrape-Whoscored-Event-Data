@@ -14,6 +14,7 @@ New: Now added xG data for shots from Understat.com(only available for top 5 eur
 
 
 import pandas as pd
+import matplotlib.pyplot as plt
 import numpy as np
 from selenium import webdriver
 import main
@@ -30,16 +31,13 @@ if __name__ == "__main__":
     
 # whoscored match centre url of the required match (Example: Barcelona vs Sevilla)
 url = "https://www.whoscored.com/Matches/1491995/Live/Spain-LaLiga-2020-2021-Barcelona-Sevilla"
-match_data = main.getMatchData(driver, url, close_window=False)
+match_data = main.getMatchData(driver, url, close_window=True)
 
 # Match dataframe containing info about the match
 matches_df = main.createMatchesDF(match_data)
 
 # Events dataframe      
 events_df = main.createEventsDF(match_data)
-
-# Add xG data to events dataframe
-events_df = main.getxGFromUnderstat(match_data, events_df, driver)
 
 # match Id
 matchId = match_data['matchId']
@@ -74,7 +72,10 @@ matches_data = main.getMatchesData(match_urls=team_urls[:5])
 
 # getting events dataframe for required matches
 events_ls = [main.createEventsDF(match) for match in matches_data]
-events_dfs = pd.concat(events_ls)
+
+# adding EPV column
+events_list = [main.addEpvToDataFrame(match) for match in events_ls]
+events_dfs = pd.concat(events_list)
 
 # saving events as csv
 events_dfs.to_csv('events.csv')
@@ -89,19 +90,31 @@ teamId = 65
 opponent = 'Sevilla'
 venue = 'home'
 
-# Create Pass Network
-# you can change marker_label to 'name' as well
-visuals.createPassNetworks(match_data, matches_df, events_df, team='Barcelona',
-                           pitch_color='#000000', max_lw=10, marker_size=1000, 
-                           marker_color='#6a009c', marker_label='kit_no', marker_label_size=15)
+team_players_dict = {}
+for player in matches_df['home'][match_data['matchId']]['players']:
+    team_players_dict[player['playerId']] = player['name'] 
+    
+# Total Passes
+passes_df = events_df.loc[events_df['type']=='Pass'].reset_index(drop=True)
+passes_df = passes_df.loc[passes_df['outcomeType']=='Successful'].reset_index(drop=True)
+passes_df = passes_df.loc[passes_df['teamId'] == teamId].reset_index(drop=True)
 
 
 
-# Create Progressive Pass Network
-# you can change marker_label to 'name' as well
-visuals.createAttPassNetworks(match_data, matches_df, events_df, team='Barcelona', 
-                              pitch_color='#000000', max_lw=10, marker_size=1000, 
-                              marker_color='#6a009c', marker_label='kit_no', marker_label_size=15)
+
+
+###     Get Passes For Different Durations     ###
+# Cut in 2
+first_half_passes = passes_df.loc[passes_df['period']=='FirstHalf']
+second_half_passes = passes_df.loc[passes_df['period']=='SecondHalf'].reset_index(drop=True)
+
+# Cut in 4 (quarter = 25 mins)
+first_quarter_passes = first_half_passes.loc[first_half_passes['minute'] <= 25]
+second_quarter_passes = first_half_passes.loc[first_half_passes['minute'] > 25].reset_index(drop=True)
+third_quarter_passes = second_half_passes.loc[second_half_passes['minute'] <= 70]
+fourth_quarter_passes = second_half_passes.loc[second_half_passes['minute'] > 70].reset_index(drop=True)
+
+
 
 
 
@@ -122,33 +135,31 @@ visuals.getTeamSuccessfulBoxPasses(events_df, teamId, team, pitch_color='#000000
 
 
 
-###     Get Passes For Different Durations     ###
-team_players_dict = {}
-for player in matches_df['home'][match_data['matchId']]['players']:
-    team_players_dict[player['playerId']] = player['name'] 
-    
-# Total Passes
-passes_df = events_df.loc[[row['displayName'] == 'Pass' for row in list(events_df['type'])]].reset_index(drop=True)
-passes_df = passes_df.loc[[row['displayName'] == 'Successful' for row in list(passes_df['outcomeType'])]].reset_index(drop=True)
-passes_df = passes_df.loc[passes_df['teamId'] == teamId].reset_index(drop=True)
-passes_df.insert(27, column='playerName', value=[team_players_dict[i] for i in list(passes_df['playerId'])])
+# Create Pass Network
+# you can change marker_label to 'name' as well
+fig,ax = plt.subplots(figsize=(16,11))
+visuals.createPassNetworks(match_data, events_df, matchId=match_data['matchId'], team='Barcelona', max_line_width=6, 
+                           marker_size=1500, edgewidth=3, dh_arrow_width=25, marker_color='#0e5cba',
+                           marker_edge_color='w', shrink=24, ax=ax, kit_no_size=25)
 
-# Cut in 2
-first_half_passes = passes_df.loc[[row['displayName'] == 'FirstHalf' for row in list(passes_df['period'])]]
-second_half_passes = passes_df.loc[[row['displayName'] == 'SecondHalf' for row in list(passes_df['period'])]].reset_index(drop=True)
 
-# Cut in 4 (quarter = 25 mins)
-first_quarter = first_half_passes.loc[first_half_passes['minute'] <= 25]
-second_quarter = first_half_passes.loc[first_half_passes['minute'] > 25].reset_index(drop=True)
-third_quarter = second_half_passes.loc[second_half_passes['minute'] <= 70]
-fourth_quarter = second_half_passes.loc[second_half_passes['minute'] > 70].reset_index(drop=True)
+
+# Create Progressive Pass Network
+# you can change marker_label to 'name' as well
+fig,ax = plt.subplots(figsize=(16,11))
+visuals.createAttPassNetworks(match_data, events_df, matchId=match_data['matchId'], team='Barcelona', max_line_width=6, 
+                              marker_size=1300, edgewidth=3, dh_arrow_width=25, marker_color='#0e5cba', 
+                              marker_edge_color='w', shrink=24, ax=ax, kit_no_size=25)
+
 
 
 
 
 
 ###    Get Shot map for a team    ###
-visuals.createShotmap(match_data, events_df, team='Sevilla', pitchcolor='black', shotcolor='white', goalcolor='red', titlecolor='white', legendcolor='white', marker_size=300)
+fig,ax = plt.subplots(figsize=(16,11))
+visuals.createShotmap(match_data, events_df, team='Barcelona', pitchcolor='black', shotcolor='white', 
+                      goalcolor='red', titlecolor='white', legendcolor='white', marker_size=300, fig=fig, ax=ax)
 
 
 
@@ -156,8 +167,9 @@ visuals.createShotmap(match_data, events_df, team='Sevilla', pitchcolor='black',
 
 ###    Get Net PV formation map for a team    ###
 # Choose your color palette from here: https://seaborn.pydata.org/tutorial/color_palettes.html
-visuals.createPVFormationMap(match_data, events_df, team='Sevilla', color_palette=sns.color_palette("flare", as_cmap=True),
-                             markerstyle='h', markersize=1000, markeredgewidth=2, labelsize=7, labelcolor='w')
+fig,ax = plt.subplots(figsize=(16,11))
+visuals.createPVFormationMap(match_data, events_df, team='Barcelona', color_palette=sns.color_palette("flare", as_cmap=True),
+                             markerstyle='h', markersize=1000, markeredgewidth=2, labelsize=7, labelcolor='w', ax=ax)
 
 
 

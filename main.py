@@ -379,6 +379,7 @@ def createMatchesDF(data):
 
 
 
+
 def load_EPV_grid(fname='EPV_grid.csv'):
     """ load_EPV_grid(fname='EPV_grid.csv')
     
@@ -452,39 +453,37 @@ def to_metric_coordinates_from_whoscored(data,field_dimen=(106.,68.) ):
 
 
 def addEpvToDataFrame(data):
-    
+
     # loading EPV data
     EPV = load_EPV_grid('EPV_grid.csv')
 
     # converting opta coordinates to metric coordinates
     data = to_metric_coordinates_from_whoscored(data)
-    
-    EPV_start = []
-    EPV_end = []
+
+    # calculating EPV for events
     EPV_difference = []
-    for i,row in data.iterrows():
-        if row['type']['displayName'] == 'Pass' and row['outcomeType']['value'] == 1:
-            start_pos = (row['x_metrica'], row['y_metrica'])
-            start_epv = get_EPV_at_location(start_pos,EPV,attack_direction=1)
-            EPV_start.append(start_epv)
+    for i in data.index:
+        if data.loc[i, 'type'] == 'Pass' and data.loc[i, 'outcomeType'] == 'Successful':
+            start_pos = (data.loc[i, 'x_metrica'], data.loc[i, 'y_metrica'])
+            start_epv = get_EPV_at_location(start_pos, EPV, attack_direction=1)
             
-            end_pos = (row['endX_metrica'], row['endY_metrica'])
-            end_epv = get_EPV_at_location(end_pos,EPV,attack_direction=1)
-            EPV_end.append(end_epv)
+            end_pos = (data.loc[i, 'endX_metrica'], data.loc[i, 'endY_metrica'])
+            end_epv = get_EPV_at_location(end_pos, EPV, attack_direction=1)
             
             diff = end_epv - start_epv
             EPV_difference.append(diff)
             
         else:
-            EPV_start.append(np.nan)
-            EPV_end.append(np.nan)
             EPV_difference.append(np.nan)
     
     data = data.assign(EPV_difference = EPV_difference)
+    
+    
     # dump useless columns
     drop_cols = ['x_metrica', 'endX_metrica', 'y_metrica',
                  'endY_metrica']
     data.drop(drop_cols, axis=1, inplace=True)
+    data.rename(columns={'EPV_difference': 'EPV'}, inplace=True)
     
     return data
 
@@ -492,121 +491,8 @@ def addEpvToDataFrame(data):
 
 
 
-def getUnderstatShotData(match_url, driver):
-    
-    driver.get(match_url)
-
-    # getting shot data from script
-    shot_data_tag = driver.find_element_by_xpath('/html/body/div[1]/div[3]/div[2]/div[1]/div/script')
-    script_data = shot_data_tag.get_attribute('innerHTML')
-    json_data = script_data[script_data.index("('")+2:script_data.index("')")]
-    json_data = json_data.encode('utf8').decode('unicode_escape')
-    shot_data = json.loads(json_data)
-    
-    # closing browser window
-    driver.close()
-
-    # converting shot data from json to dataframe format
-    h_df = pd.DataFrame(shot_data['h'])
-    a_df = pd.DataFrame(shot_data['a'])
-    shot_data_df = pd.concat([h_df,a_df]).reset_index(drop=True)
-    shot_data_df = shot_data_df.astype({'X':'float', 'Y':'float', 'xG':'float'}) 
-
-    # sorting by minute sequence
-    shot_data_df = shot_data_df.astype({'minute':int}) 
-    shot_data_df = shot_data_df.sort_values('minute')
-    
-    return shot_data_df
 
 
-
-
-
-
-def getxGFromUnderstat(match_data, events_df, driver):
-    
-    # Opening home page
-    url = 'https://understat.com'
-    driver.get(url)
-    
-    
-    # Getting leagues available in understat
-    und_leagues = driver.find_element_by_xpath('//*[@id="header"]/div/nav[1]/ul').text.split('\n')
-    found = False
-    for lg in und_leagues:
-        if match_data['league'].upper() == ''.join(lg.split()).upper():
-            driver.find_element_by_link_text(lg).click()
-            found = True
-            break
-    
-    
-    # If league not found -> exit
-    if found == False:
-        print('Expected Goals data for league not available')
-        driver.close()
-        
-    else:
-        # Getting seasons available in understat
-        season_btn = driver.find_element_by_xpath('//*[@id="header"]/div/div[2]/div').click()
-        und_seasons = driver.find_element_by_xpath('//*[@id="header"]/div/div[2]/ul').text.split('\n')
-        found = False
-        for szn in und_seasons:
-            if match_data['season'] == szn:
-                i = str(und_seasons.index(szn)+1)
-                driver.find_element_by_xpath("//*[@id='header']/div/div[2]/ul/li["+i+"]").click()
-                found = True
-                break
-        
-        
-        # If season not found -> exit
-        if found == False:
-            print('Expected Goals data for season not available')
-            driver.close()
-
-        else:
-            # Getting match date display
-            timezn_off_btn = driver.find_element_by_xpath('/html/body/div[1]/div[3]/div[2]/div/div/div[1]/div/label[3]').click()
-            date = '-'.join(match_data['startDate'].split('T')[0].split('-')[::-1])
-            d = datetime.datetime.strptime(date, '%d-%m-%Y')
-            date = datetime.date.strftime(d, "%A, %B %d, %Y")
-            prev_btn = driver.find_element_by_xpath('/html/body/div[1]/div[3]/div[2]/div/div/button[1]')
-            next_btn = driver.find_element_by_xpath('/html/body/div[1]/div[3]/div[2]/div/div/button[2]')
-            btn_ls = []
-            found = True
-            while found:
-                display_dates = [datetime.datetime.strptime(d.text, '%A, %B %d, %Y') for d in driver.find_elements_by_class_name('calendar-date')]
-                if d in display_dates:
-                    found = False
-                elif datetime.datetime(d.year, d.month, d.day) < datetime.datetime(display_dates[0].year, display_dates[0].month, display_dates[0].day):
-                    prev_btn.click()
-                    btn_ls.append('p')
-                else:   
-                    next_btn.click()
-                    btn_ls.append('n')
-                if btn_ls.count('p') != len(btn_ls) and btn_ls.count('n') != len(btn_ls):
-                    found = False
-                    print('Date not found')
-
-
-            # Getting match url
-            title = match_data['home']['name']+match_data['score']+match_data['away']['name']
-            games_on_date = [soup(contain.get_attribute('innerHTML'), features="lxml").find_all('div', {'class':'calendar-game'}) 
-                             for contain in driver.find_elements_by_class_name("calendar-date-container") 
-                             if contain.text.split('\n')[0]==date][0]
-            match_url = [url+'/'+game.find('a', {'class':'match-info'}).get('href') for game in games_on_date 
-                         if game.find('div', {'class':'block-home team-home'}).text in match_data['home']['name']
-                         and game.find('div', {'class':'block-away team-away'}).text in match_data['away']['name']][0]
-
-
-            # Addding xG from shot data to events dataframe
-            und_shotdata = getUnderstatShotData(match_url, driver)
-            events_df['xG'] = np.nan
-            und_shotdata.index = events_df.loc[events_df.isShot==True].index
-            for i in events_df.loc[events_df.isShot==True].index:
-                events_df.loc[[i],'xG'] = und_shotdata.loc[[i],'xG']
-    
-    
-    return events_df
 
 
 
