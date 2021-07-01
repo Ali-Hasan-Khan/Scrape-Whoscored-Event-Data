@@ -126,6 +126,9 @@ def createPassNetworks(match_data, events_df, matchId, team, max_line_width,
         passes_df = passes_df.drop(columns='playerName')
     passes_df.dropna(subset=["playerId"], inplace=True)
     passes_df.insert(27, column='playerName', value=[team_players_dict[i] for i in list(passes_df['playerId'])])
+    if 'passRecipientId' in passes_df.columns:
+        passes_df = passes_df.drop(columns='passRecipientId')
+        passes_df = passes_df.drop(columns='passRecipientName')
     passes_df.insert(28, column='passRecipientId', value=passes_df['playerId'].shift(-1))  
     passes_df.insert(29, column='passRecipientName', value=passes_df['playerName'].shift(-1))  
     passes_df.dropna(subset=["passRecipientName"], inplace=True)
@@ -311,6 +314,9 @@ def createAttPassNetworks(match_data, events_df, matchId, team, max_line_width,
         passes_df = passes_df.drop(columns='playerName')
     passes_df.dropna(subset=["playerId"], inplace=True)
     passes_df.insert(27, column='playerName', value=[team_players_dict[i] for i in list(passes_df['playerId'])])
+    if 'passRecipientId' in passes_df.columns:
+        passes_df = passes_df.drop(columns='passRecipientId')
+        passes_df = passes_df.drop(columns='passRecipientName')
     passes_df.insert(28, column='passRecipientId', value=passes_df['playerId'].shift(-1))  
     passes_df.insert(29, column='passRecipientName', value=passes_df['playerName'].shift(-1))  
     passes_df.dropna(subset=["passRecipientName"], inplace=True)
@@ -656,6 +662,9 @@ def createPVFormationMap(match_data, events_df, team, color_palette,
         passes_df = passes_df.drop(columns='playerName')
     passes_df.dropna(subset=["playerId"], inplace=True)
     passes_df.insert(27, column='playerName', value=[team_players_dict[i] for i in list(passes_df['playerId'])])
+    if 'passRecipientId' in passes_df.columns:
+        passes_df = passes_df.drop(columns='passRecipientId')
+        passes_df = passes_df.drop(columns='passRecipientName')
     passes_df.insert(28, column='passRecipientId', value=passes_df['playerId'].shift(-1))  
     passes_df.insert(29, column='passRecipientName', value=passes_df['playerName'].shift(-1))  
     passes_df.dropna(subset=["passRecipientName"], inplace=True)
