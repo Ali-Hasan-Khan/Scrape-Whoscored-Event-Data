@@ -142,12 +142,13 @@ def getMatchesData(match_urls, minimize_window=True):
     
     try:
         for i in trange(len(match_urls), desc='Getting Match Data'):
-            time.sleep(15)
+            # recommended to avoid getting blocked by incapsula/imperva bots
+            time.sleep(7)
             match_data = getMatchData(driver, main_url+match_urls[i]['url'], display=False, close_window=False)
             matches.append(match_data)
     except NameError:
         print('Recommended: \'pip install tqdm\' for a progress bar while the data gets scraped....')
-        time.sleep(15)
+        time.sleep(7)
         for i in range(len(match_urls)):
             match_data = getMatchData(driver, main_url+match_urls[i]['url'], display=False, close_window=False)
             matches.append(match_data)
