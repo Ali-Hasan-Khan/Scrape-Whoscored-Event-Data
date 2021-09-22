@@ -109,9 +109,15 @@ def getMatchUrls(comp_url, season, maximize_window=True):
     year2 = driver.find_element_by_xpath('//*[@id="date-config"]/div[1]/div/table/tbody/tr/td[1]/div/table/tbody/tr[2]/td').click()
     selectable_months = driver.find_element_by_xpath('//*[@id="date-config"]/div[1]/div/table/tbody/tr/td[2]/div/table').find_elements_by_class_name("selectable")
     
+    # select the last month clickable
+    time.sleep(1)
+    driver.find_element_by_xpath('//*[@id="date-config"]/div[1]/div/table/tbody/tr/td[2]/div/table').find_elements_by_class_name("selectable")[-1].click()
+
     n_months += len(selectable_months)
+    time.sleep(1)
     date_config_btn = driver.find_element_by_xpath('//*[@id="date-config-toggle-button"]').click()
     
+    time.sleep(1)
     match_urls = getFixtureData(driver, n_months)
     
     match_urls = getSortedData(match_urls)
@@ -170,8 +176,10 @@ def getFixtureData(driver, n_months):
             element = soup(row.get_attribute('innerHTML'), features='lxml')
             link_tag = element.find("a", {"class":"result-1 rc"})
             if type(link_tag) is type(None):
-                date = row.text.split(', ')[-1]
+                if type(element.find('span', {'class':'status-1 rc'})) is type(None):
+                    date = row.text.split(', ')[-1]
             if type(link_tag) is not type(None):
+                # if element.find('div', {'class':'col12-lg-1 col12-m-1 col12-s-1 col12-xs-1 status divtable-data'}).text != 'Post':
                 match_dict['date'] = date
                 match_dict['time'] = element.find('div', {'class':'col12-lg-1 col12-m-1 col12-s-0 col12-xs-0 time divtable-data'}).text
                 match_dict['home'] = element.find_all("a", {"class":"team-link"})[0].text
