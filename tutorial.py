@@ -62,7 +62,7 @@ events_df = main.addEpvToDataFrame(events_df)
 league_urls = main.getLeagueUrls()
 
 # getting match urls for that competition and season
-match_urls = main.getMatchUrls(comp_url=league_urls['LaLiga'], season='2020/2021')
+match_urls = main.getMatchUrls(comp_urls=league_urls, competition='LaLiga', season='2021/2022')
 
 # getting match urls for a specific team
 team_urls = main.getTeamUrls(team='Barcelona', match_urls=match_urls)

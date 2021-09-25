@@ -40,7 +40,19 @@ TRANSLATE_DICT = {'Jan': 'Jan',
                  'Sep': 'Sep',
                  'Okt': 'Oct',
                  'Nov': 'Nov',
-                 'Des': 'Dec'}
+                 'Des': 'Dec',
+                 'Jan': 'Jan',
+                 'Feb': 'Feb',
+                 'Mar': 'Mar',
+                 'Apr': 'Apr',
+                 'May': 'May',
+                 'Jun': 'Jun',
+                 'Jul': 'Jul',
+                 'Aug': 'Aug',
+                 'Sep': 'Sep',
+                 'Oct': 'Oct',
+                 'Nov': 'Nov',
+                 'Dec': 'Dec'}
 
 main_url = 'https://1xbet.whoscored.com/'
 
@@ -76,55 +88,109 @@ def getLeagueUrls(minimize_window=True):
 
 
       
-def getMatchUrls(comp_url, season, maximize_window=True):
-    
+def getMatchUrls(comp_urls, competition, season, maximize_window=True):
+
     driver = webdriver.Chrome('chromedriver.exe')
+    
     if maximize_window:
         driver.maximize_window()
     
-    # teams = []
+    comp_url = comp_urls[competition]
     driver.get(comp_url)
     time.sleep(5)
     
     seasons = driver.find_element_by_xpath('//*[@id="seasons"]').get_attribute('innerHTML').split(sep='\n')
     seasons = [i for i in seasons if i]
     
+    
     for i in range(1, len(seasons)+1):
         if driver.find_element_by_xpath('//*[@id="seasons"]/option['+str(i)+']').text == season:
-            season = driver.find_element_by_xpath('//*[@id="seasons"]/option['+str(i)+']').click()
+            driver.find_element_by_xpath('//*[@id="seasons"]/option['+str(i)+']').click()
+            
+            time.sleep(5)
+            try:
+                stages = driver.find_element_by_xpath('//*[@id="stages"]').get_attribute('innerHTML').split(sep='\n')
+                stages = [i for i in stages if i]
+                
+                all_urls = []
+            
+                for i in range(1, len(stages)+1):
+                    if competition == 'Champions League' or competition == 'Europa League':
+                        if 'Group Stages' in driver.find_element_by_xpath('//*[@id="stages"]/option['+str(i)+']').text or 'Final Stage' in driver.find_element_by_xpath('//*[@id="stages"]/option['+str(i)+']').text:
+                            driver.find_element_by_xpath('//*[@id="stages"]/option['+str(i)+']').click()
+                            time.sleep(5)
+                            
+                            driver.execute_script("window.scrollTo(0, 400)") 
+                            
+                            match_urls = getFixtureData(driver)
+                            
+                            match_urls = getSortedData(match_urls)
+                            
+                            match_urls2 = [url for url in match_urls if '?' not in url['date'] and '\n' not in url['date']]
+                            
+                            all_urls += match_urls2
+                        else:
+                            continue
+                    
+                    elif competition == 'Major League Soccer':
+                        if 'Grp. ' not in driver.find_element_by_xpath('//*[@id="stages"]/option['+str(i)+']').text: 
+                            driver.find_element_by_xpath('//*[@id="stages"]/option['+str(i)+']').click()
+                            time.sleep(5)
+                        
+                            driver.execute_script("window.scrollTo(0, 400)")
+                            
+                            match_urls = getFixtureData(driver)
+                            
+                            match_urls = getSortedData(match_urls)
+                            
+                            match_urls2 = [url for url in match_urls if '?' not in url['date'] and '\n' not in url['date']]
+                            
+                            all_urls += match_urls2
+                        else:
+                            continue
+                        
+                    else:
+                        driver.find_element_by_xpath('//*[@id="stages"]/option['+str(i)+']').click()
+                        time.sleep(5)
+                    
+                        driver.execute_script("window.scrollTo(0, 400)")
+                        
+                        match_urls = getFixtureData(driver)
+                        
+                        match_urls = getSortedData(match_urls)
+                        
+                        match_urls2 = [url for url in match_urls if '?' not in url['date'] and '\n' not in url['date']]
+                        
+                        all_urls += match_urls2
+                
+            except NoSuchElementException:
+                all_urls = []
+                
+                driver.execute_script("window.scrollTo(0, 400)")
+                
+                match_urls = getFixtureData(driver)
+                
+                match_urls = getSortedData(match_urls)
+                
+                match_urls2 = [url for url in match_urls if '?' not in url['date'] and '\n' not in url['date']]
+                
+                all_urls += match_urls2
+            
+            
+            remove_dup = [dict(t) for t in {tuple(sorted(d.items())) for d in all_urls}]
+            all_urls = getSortedData(remove_dup)
+            
+            driver.close() 
     
-        
-    time.sleep(5)
-    fixtures_page = driver.find_element_by_xpath('//*[@id="link-fixtures"]')
-    driver.execute_script("arguments[0].scrollIntoView();", fixtures_page)
-    driver.execute_script("arguments[0].click();", fixtures_page) 
-    time.sleep(5)
-    date_config_btn = driver.find_element_by_xpath('//*[@id="date-config-toggle-button"]').click()
-    time.sleep(5)
-    year1 = driver.find_element_by_xpath('//*[@id="date-config"]/div[1]/div/table/tbody/tr/td[1]/div/table/tbody/tr[1]/td').click()
-    selectable_months = driver.find_element_by_xpath('//*[@id="date-config"]/div[1]/div/table/tbody/tr/td[2]/div/table').find_elements_by_class_name("selectable")
+            return all_urls
+     
+    season_names = [re.search(r'\>(.*?)\<',season).group(1) for season in seasons]
+    driver.close() 
+    print('Seasons available: {}'.format(season_names))
+    raise('Season Not Found.')
     
-    n_months = len(selectable_months)
-    
-    year2 = driver.find_element_by_xpath('//*[@id="date-config"]/div[1]/div/table/tbody/tr/td[1]/div/table/tbody/tr[2]/td').click()
-    selectable_months = driver.find_element_by_xpath('//*[@id="date-config"]/div[1]/div/table/tbody/tr/td[2]/div/table').find_elements_by_class_name("selectable")
-    
-    # select the last month clickable
-    time.sleep(1)
-    driver.find_element_by_xpath('//*[@id="date-config"]/div[1]/div/table/tbody/tr/td[2]/div/table').find_elements_by_class_name("selectable")[-1].click()
 
-    n_months += len(selectable_months)
-    time.sleep(1)
-    date_config_btn = driver.find_element_by_xpath('//*[@id="date-config-toggle-button"]').click()
-    
-    time.sleep(1)
-    match_urls = getFixtureData(driver, n_months)
-    
-    match_urls = getSortedData(match_urls)
-    
-    
-    driver.close()
-    return match_urls
+
 
 
 def getTeamUrls(team, match_urls):
@@ -166,11 +232,13 @@ def getMatchesData(match_urls, minimize_window=True):
 
 
 
-def getFixtureData(driver, n_months):
+def getFixtureData(driver):
 
     matches_ls = []
-    for i in range(n_months):
+    while True:
         table_rows = driver.find_elements_by_class_name('divtable-row')
+        if len(table_rows) == 0:
+            break
         for row in table_rows:
             match_dict = {}
             element = soup(row.get_attribute('innerHTML'), features='lxml')
@@ -179,7 +247,6 @@ def getFixtureData(driver, n_months):
                 if type(element.find('span', {'class':'status-1 rc'})) is type(None):
                     date = row.text.split(', ')[-1]
             if type(link_tag) is not type(None):
-                # if element.find('div', {'class':'col12-lg-1 col12-m-1 col12-s-1 col12-xs-1 status divtable-data'}).text != 'Post':
                 match_dict['date'] = date
                 match_dict['time'] = element.find('div', {'class':'col12-lg-1 col12-m-1 col12-s-0 col12-xs-0 time divtable-data'}).text
                 match_dict['home'] = element.find_all("a", {"class":"team-link"})[0].text
@@ -187,11 +254,34 @@ def getFixtureData(driver, n_months):
                 match_dict['score'] = element.find("a", {"class":"result-1 rc"}).text
                 match_dict['url'] = link_tag.get("href")
             matches_ls.append(match_dict)
+                
         prev_month = driver.find_element_by_xpath('//*[@id="date-controller"]/a[1]').click()
         time.sleep(2)
+        if driver.find_element_by_xpath('//*[@id="date-controller"]/a[1]').get_attribute('title') == 'No data for previous week':
+            table_rows = driver.find_elements_by_class_name('divtable-row')
+            for row in table_rows:
+                match_dict = {}
+                element = soup(row.get_attribute('innerHTML'), features='lxml')
+                link_tag = element.find("a", {"class":"result-1 rc"})
+                if type(link_tag) is type(None):
+                    if type(element.find('span', {'class':'status-1 rc'})) is type(None):
+                        date = row.text.split(', ')[-1]
+                if type(link_tag) is not type(None):
+                    match_dict['date'] = date
+                    match_dict['time'] = element.find('div', {'class':'col12-lg-1 col12-m-1 col12-s-0 col12-xs-0 time divtable-data'}).text
+                    match_dict['home'] = element.find_all("a", {"class":"team-link"})[0].text
+                    match_dict['away'] = element.find_all("a", {"class":"team-link"})[1].text
+                    match_dict['score'] = element.find("a", {"class":"result-1 rc"}).text
+                    match_dict['url'] = link_tag.get("href")
+                matches_ls.append(match_dict)
+            break
+    
     matches_ls = list(filter(None, matches_ls))
 
     return matches_ls
+
+
+
 
 
 
