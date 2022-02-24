@@ -68,7 +68,8 @@ def getLeagueUrls(minimize_window=True):
     driver.get(main_url)
     league_names = []
     league_urls = []
-    for i in range(21):
+    n_tournaments = len(soup(driver.find_element_by_id('popular-tournaments-list').get_attribute('innerHTML')).findAll('li'))
+    for i in range(n_tournaments):
         league_name = driver.find_element_by_xpath('//*[@id="popular-tournaments-list"]/li['+str(i+1)+']/a').text
         league_link = driver.find_element_by_xpath('//*[@id="popular-tournaments-list"]/li['+str(i+1)+']/a').get_attribute('href')
         league_names.append(league_name)
@@ -287,9 +288,20 @@ def getFixtureData(driver):
 
 def translateDate(data):
     
+    unwanted = []
     for match in data:
         date = match['date'].split()
-        match['date'] = ' '.join([TRANSLATE_DICT[date[0]], date[1], date[2]])
+        if '?' not in date[0]:
+            try:
+                match['date'] = ' '.join([TRANSLATE_DICT[date[0]], date[1], date[2]])
+            except KeyError:
+                print(date)
+        else:
+            unwanted.append(data.index(match))
+    
+    # remove matches that got suspended/postponed
+    for i in sorted(unwanted, reverse = True):
+        del data[i]
     
     return data
 
