@@ -498,14 +498,13 @@ def getTeamSuccessfulBoxPasses(events_df, teamId, team, pitch_color, cmap):
     
         
     # orientation='vertical'
-    pitch = VerticalPitch(pitch_type='statsbomb', pitch_color=pitch_color, line_color='#c7d5cc',
-                          figsize=(16, 11), half=True, pad_top=2)
-    fig, ax = pitch.draw(tight_layout=True)
+    pitch = VerticalPitch(pitch_type='statsbomb', pitch_color=pitch_color, line_color='#c7d5cc', half=True, pad_top=2)
+    fig, ax = pitch.draw(tight_layout=True, figsize=(16, 11))
     
     # Plot the completed passes
     pitch.lines(successful_box_passes.x/100*120, 80-successful_box_passes.y/100*80,
                 successful_box_passes.endX/100*120, 80-successful_box_passes.endY/100*80,
-                lw=5, cmap=cmap, opp_comet=True, opp_transparent=True,
+                lw=5, cmap=cmap, comet=True, transparent=True,
                 label='Successful Passes', ax=ax)
     
     pitch.scatter(successful_box_passes.x/100*120, 80-successful_box_passes.y/100*80,
@@ -563,8 +562,8 @@ def getTeamTotalPasses(events_df, teamId, team, opponent, pitch_color):
     unsuccessful_passes = team_passes.loc[team_passes['outcomeType']=='Unsuccessful'].reset_index(drop=True)
             
     # Setup the pitch
-    pitch = Pitch(pitch_type='statsbomb', pitch_color=pitch_color, line_color='#c7d5cc', figsize=(16, 11))
-    fig, ax = pitch.draw(constrained_layout=True, tight_layout=False)
+    pitch = Pitch(pitch_type='statsbomb', pitch_color=pitch_color, line_color='#c7d5cc')
+    fig, ax = pitch.draw(constrained_layout=True, tight_layout=False, figsize=(16, 11))
     
     # Plot the completed passes
     pitch.arrows(successful_passes.x/100*120, 80-successful_passes.y/100*80,

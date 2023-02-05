@@ -13,7 +13,6 @@ import json
 from bs4 import BeautifulSoup as soup
 import re 
 from collections import OrderedDict
-import datetime
 from datetime import datetime as dt
 import itertools
 import numpy as np
@@ -27,6 +26,7 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.chrome.options import Options
 from selenium.common.exceptions import NoSuchElementException
+from selenium.webdriver.common.by import By
 
 
 TRANSLATE_DICT = {'Jan': 'Jan',
@@ -68,10 +68,10 @@ def getLeagueUrls(minimize_window=True):
     driver.get(main_url)
     league_names = []
     league_urls = []
-    n_tournaments = len(soup(driver.find_element_by_id('popular-tournaments-list').get_attribute('innerHTML')).findAll('li'))
+    n_tournaments = len(soup(driver.find_element(By.ID, 'popular-tournaments-list').get_attribute('innerHTML')).findAll('li'))
     for i in range(n_tournaments):
-        league_name = driver.find_element_by_xpath('//*[@id="popular-tournaments-list"]/li['+str(i+1)+']/a').text
-        league_link = driver.find_element_by_xpath('//*[@id="popular-tournaments-list"]/li['+str(i+1)+']/a').get_attribute('href')
+        league_name = driver.find_element("xpath", '//*[@id="popular-tournaments-list"]/li['+str(i+1)+']/a').text
+        league_link = driver.find_element("xpath", '//*[@id="popular-tournaments-list"]/li['+str(i+1)+']/a').get_attribute('href')
         league_names.append(league_name)
         league_urls.append(league_link)
         
@@ -100,25 +100,25 @@ def getMatchUrls(comp_urls, competition, season, maximize_window=True):
     driver.get(comp_url)
     time.sleep(5)
     
-    seasons = driver.find_element_by_xpath('//*[@id="seasons"]').get_attribute('innerHTML').split(sep='\n')
+    seasons = driver.find_element("xpath", '//*[@id="seasons"]').get_attribute('innerHTML').split(sep='\n')
     seasons = [i for i in seasons if i]
     
     
     for i in range(1, len(seasons)+1):
-        if driver.find_element_by_xpath('//*[@id="seasons"]/option['+str(i)+']').text == season:
-            driver.find_element_by_xpath('//*[@id="seasons"]/option['+str(i)+']').click()
+        if driver.find_element("xpath", '//*[@id="seasons"]/option['+str(i)+']').text == season:
+            driver.find_element("xpath", '//*[@id="seasons"]/option['+str(i)+']').click()
             
             time.sleep(5)
             try:
-                stages = driver.find_element_by_xpath('//*[@id="stages"]').get_attribute('innerHTML').split(sep='\n')
+                stages = driver.find_element("xpath", '//*[@id="stages"]').get_attribute('innerHTML').split(sep='\n')
                 stages = [i for i in stages if i]
                 
                 all_urls = []
             
                 for i in range(1, len(stages)+1):
                     if competition == 'Champions League' or competition == 'Europa League':
-                        if 'Group Stages' in driver.find_element_by_xpath('//*[@id="stages"]/option['+str(i)+']').text or 'Final Stage' in driver.find_element_by_xpath('//*[@id="stages"]/option['+str(i)+']').text:
-                            driver.find_element_by_xpath('//*[@id="stages"]/option['+str(i)+']').click()
+                        if 'Group Stages' in driver.find_element("xpath", '//*[@id="stages"]/option['+str(i)+']').text or 'Final Stage' in driver.find_element("xpath", '//*[@id="stages"]/option['+str(i)+']').text:
+                            driver.find_element("xpath", '//*[@id="stages"]/option['+str(i)+']').click()
                             time.sleep(5)
                             
                             driver.execute_script("window.scrollTo(0, 400)") 
@@ -134,8 +134,8 @@ def getMatchUrls(comp_urls, competition, season, maximize_window=True):
                             continue
                     
                     elif competition == 'Major League Soccer':
-                        if 'Grp. ' not in driver.find_element_by_xpath('//*[@id="stages"]/option['+str(i)+']').text: 
-                            driver.find_element_by_xpath('//*[@id="stages"]/option['+str(i)+']').click()
+                        if 'Grp. ' not in driver.find_element("xpath", '//*[@id="stages"]/option['+str(i)+']').text: 
+                            driver.find_element("xpath", '//*[@id="stages"]/option['+str(i)+']').click()
                             time.sleep(5)
                         
                             driver.execute_script("window.scrollTo(0, 400)")
@@ -151,7 +151,7 @@ def getMatchUrls(comp_urls, competition, season, maximize_window=True):
                             continue
                         
                     else:
-                        driver.find_element_by_xpath('//*[@id="stages"]/option['+str(i)+']').click()
+                        driver.find_element("xpath", '//*[@id="stages"]/option['+str(i)+']').click()
                         time.sleep(5)
                     
                         driver.execute_script("window.scrollTo(0, 400)")
@@ -237,7 +237,7 @@ def getFixtureData(driver):
 
     matches_ls = []
     while True:
-        table_rows = driver.find_elements_by_class_name('divtable-row')
+        table_rows = driver.find_elements(By.CLASS_NAME, 'divtable-row')
         if len(table_rows) == 0:
             break
         for row in table_rows:
@@ -256,10 +256,10 @@ def getFixtureData(driver):
                 match_dict['url'] = link_tag.get("href")
             matches_ls.append(match_dict)
                 
-        prev_month = driver.find_element_by_xpath('//*[@id="date-controller"]/a[1]').click()
+        prev_month = driver.find_element("xpath", '//*[@id="date-controller"]/a[1]').click()
         time.sleep(2)
-        if driver.find_element_by_xpath('//*[@id="date-controller"]/a[1]').get_attribute('title') == 'No data for previous week':
-            table_rows = driver.find_elements_by_class_name('divtable-row')
+        if driver.find_element("xpath", '//*[@id="date-controller"]/a[1]').get_attribute('title') == 'No data for previous week':
+            table_rows = driver.find_elements(By.CLASS_NAME, 'divtable-row')
             for row in table_rows:
                 match_dict = {}
                 element = soup(row.get_attribute('innerHTML'), features='lxml')
@@ -323,7 +323,7 @@ def getMatchData(driver, url, display=True, close_window=True):
     driver.get(url)
 
     # get script data from page source
-    script_content = driver.find_element_by_xpath('//*[@id="layout-wrapper"]/script[1]').get_attribute('innerHTML')
+    script_content = driver.find_element("xpath", '//*[@id="layout-wrapper"]/script[1]').get_attribute('innerHTML')
 
 
     # clean script content
@@ -345,15 +345,15 @@ def getMatchData(driver, url, display=True, close_window=True):
 
 
     # get other details about the match
-    region = driver.find_element_by_xpath('//*[@id="breadcrumb-nav"]/span[1]').text
-    league = driver.find_element_by_xpath('//*[@id="breadcrumb-nav"]/a').text.split(' - ')[0]
-    season = driver.find_element_by_xpath('//*[@id="breadcrumb-nav"]/a').text.split(' - ')[1]
-    if len(driver.find_element_by_xpath('//*[@id="breadcrumb-nav"]/a').text.split(' - ')) == 2:
+    region = driver.find_element("xpath", '//*[@id="breadcrumb-nav"]/span[1]').text
+    league = driver.find_element("xpath", '//*[@id="breadcrumb-nav"]/a').text.split(' - ')[0]
+    season = driver.find_element("xpath", '//*[@id="breadcrumb-nav"]/a').text.split(' - ')[1]
+    if len(driver.find_element("xpath", '//*[@id="breadcrumb-nav"]/a').text.split(' - ')) == 2:
         competition_type = 'League'
         competition_stage = ''
-    elif len(driver.find_element_by_xpath('//*[@id="breadcrumb-nav"]/a').text.split(' - ')) == 3:
+    elif len(driver.find_element("xpath", '//*[@id="breadcrumb-nav"]/a').text.split(' - ')) == 3:
         competition_type = 'Knock Out'
-        competition_stage = driver.find_element_by_xpath('//*[@id="breadcrumb-nav"]/a').text.split(' - ')[-1]
+        competition_stage = driver.find_element("xpath", '//*[@id="breadcrumb-nav"]/a').text.split(' - ')[-1]
     else:
         print('Getting more than 3 types of information about the competition.')
 
