@@ -60,7 +60,7 @@ main_url = 'https://1xbet.whoscored.com/'
 
 def getLeagueUrls(minimize_window=True):
     
-    driver = webdriver.Chrome('chromedriver.exe')
+    driver = webdriver.Chrome('drivers/chromedriver.exe')
     
     if minimize_window:
         driver.minimize_window()
@@ -91,7 +91,7 @@ def getLeagueUrls(minimize_window=True):
       
 def getMatchUrls(comp_urls, competition, season, maximize_window=True):
 
-    driver = webdriver.Chrome('chromedriver.exe')
+    driver = webdriver.Chrome('drivers/chromedriver.exe')
     
     if maximize_window:
         driver.maximize_window()
@@ -209,7 +209,7 @@ def getMatchesData(match_urls, minimize_window=True):
     
     matches = []
     
-    driver = webdriver.Chrome('chromedriver.exe')
+    driver = webdriver.Chrome('drivers/chromedriver.exe')
     if minimize_window:
         driver.minimize_window()
     
@@ -320,7 +320,10 @@ def getSortedData(data):
 
 
 def getMatchData(driver, url, display=True, close_window=True):
-    driver.get(url)
+    try:
+        driver.get(url)
+    except WebDriverException:
+        driver.get(url)
 
     # get script data from page source
     script_content = driver.find_element_by_xpath('//*[@id="layout-wrapper"]/script[1]').get_attribute('innerHTML')
@@ -466,9 +469,12 @@ def createEventsDF(data):
                 events_df['situation'].loc[i] = 'OpenPlay'   
 
     # adding other event types columns
+#     event_types = list(data['matchCentreEventTypeJson'].keys())
+#     for event_type in event_types:
+#         events_df[event_type] = pd.Series([event_type in row for row in list(events_df['satisfiedEventsTypes'])])
     event_types = list(data['matchCentreEventTypeJson'].keys())
-    for event_type in event_types:
-        events_df[event_type] = pd.Series([event_type in row for row in list(events_df['satisfiedEventsTypes'])])         
+    event_type_cols = pd.DataFrame({event_type: pd.Series([event_type in row for row in events_df['satisfiedEventsTypes']]) for event_type in event_types})
+    events_df = pd.concat([events_df, event_type_cols], axis=1)
 
     return events_df
     
@@ -481,11 +487,14 @@ def createMatchesDF(data):
     matches_df = pd.DataFrame(columns=columns_req_ls)
     if type(data) == dict:
         matches_dict = dict([(key,val) for key,val in data.items() if key in columns_req_ls])
-        matches_df = matches_df.append(matches_dict, ignore_index=True)
+        matches_df = pd.DataFrame(matches_dict, columns=columns_req_ls).reset_index(drop=True)
+        matches_df[['home', 'away']] = np.nan  
+        matches_df['home'].iloc[0] = [data['home']]
+        matches_df['away'].iloc[0] = [data['away']]
     else:
         for match in data:
             matches_dict = dict([(key,val) for key,val in match.items() if key in columns_req_ls])
-            matches_df = matches_df.append(matches_dict, ignore_index=True)
+            matches_df = pd.DataFrame(matches_dict, columns=columns_req_ls).reset_index(drop=True)
     
     matches_df = matches_df.set_index('matchId')        
     return matches_df
