@@ -23,10 +23,11 @@ except ModuleNotFoundError:
     pass
 
 from selenium import webdriver
-from selenium.webdriver.common.keys import Keys
-from selenium.webdriver.common.action_chains import ActionChains
-from selenium.webdriver.chrome.options import Options
 from selenium.common.exceptions import NoSuchElementException, WebDriverException
+
+options = webdriver.ChromeOptions()
+
+options.add_experimental_option('excludeSwitches', ['enable-logging'])
 
 
 TRANSLATE_DICT = {'Jan': 'Jan',
@@ -60,7 +61,7 @@ main_url = 'https://1xbet.whoscored.com/'
 
 def getLeagueUrls(minimize_window=True):
     
-    driver = webdriver.Chrome('drivers/chromedriver.exe')
+    driver = webdriver.Chrome('drivers/chromedriver.exe', options=options)
     
     if minimize_window:
         driver.minimize_window()
@@ -91,7 +92,7 @@ def getLeagueUrls(minimize_window=True):
       
 def getMatchUrls(comp_urls, competition, season, maximize_window=True):
 
-    driver = webdriver.Chrome('drivers/chromedriver.exe')
+    driver = webdriver.Chrome('drivers/chromedriver.exe', options=options)
     
     if maximize_window:
         driver.maximize_window()
@@ -209,7 +210,7 @@ def getMatchesData(match_urls, minimize_window=True):
     
     matches = []
     
-    driver = webdriver.Chrome('drivers/chromedriver.exe')
+    driver = webdriver.Chrome('drivers/chromedriver.exe', options=options)
     if minimize_window:
         driver.minimize_window()
     
