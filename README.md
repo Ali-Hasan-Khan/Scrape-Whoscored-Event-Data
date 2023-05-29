@@ -10,7 +10,7 @@ Follow these steps after downloading the code:
 
 2) For some additional visual customisations replace **linecollection.py** with the one present in mplsoccer folder on your machine (somewhere here: ~\anaconda3\Lib\site-packages\mplsoccer). [**Recommended**] 
   
-3) Follow **tutorial.py/tutorial.ipynb** for a guide.
+3) Follow **tutorial.ipynb** for a guide.
 
 4) Make sure **chromedriver.exe**(89) matches with your version of chrome.(otherwise install that version)  
 
