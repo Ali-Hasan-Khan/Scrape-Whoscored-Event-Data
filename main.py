@@ -6,6 +6,7 @@ Created on Wed Oct 14 14:20:02 2020
 @twitter: rockingAli5 
 """
 
+import warnings
 import time
 import pandas as pd
 pd.options.mode.chained_assignment = None
@@ -22,8 +23,12 @@ try:
 except ModuleNotFoundError:
     pass
 
+
 from selenium import webdriver
 from selenium.common.exceptions import NoSuchElementException, WebDriverException
+from selenium.webdriver.chrome.service import Service
+from webdriver_manager.chrome import ChromeDriverManager
+from selenium.webdriver.common.by import By
 
 options = webdriver.ChromeOptions()
 
@@ -61,7 +66,7 @@ main_url = 'https://1xbet.whoscored.com/'
 
 def getLeagueUrls(minimize_window=True):
     
-    driver = webdriver.Chrome('drivers/chromedriver.exe', options=options)
+    driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()))
     
     if minimize_window:
         driver.minimize_window()
@@ -69,10 +74,10 @@ def getLeagueUrls(minimize_window=True):
     driver.get(main_url)
     league_names = []
     league_urls = []
-    n_tournaments = len(soup(driver.find_element_by_id('popular-tournaments-list').get_attribute('innerHTML')).findAll('li'))
+    n_tournaments = len(soup(driver.find_element(By.ID, 'popular-tournaments-list').get_attribute('innerHTML')).findAll('li'))
     for i in range(n_tournaments):
-        league_name = driver.find_element_by_xpath('//*[@id="popular-tournaments-list"]/li['+str(i+1)+']/a').text
-        league_link = driver.find_element_by_xpath('//*[@id="popular-tournaments-list"]/li['+str(i+1)+']/a').get_attribute('href')
+        league_name = driver.find_element(By.XPATH, '//*[@id="popular-tournaments-list"]/li['+str(i+1)+']/a').text
+        league_link = driver.find_element(By.XPATH, '//*[@id="popular-tournaments-list"]/li['+str(i+1)+']/a').get_attribute('href')
         league_names.append(league_name)
         league_urls.append(league_link)
         
@@ -92,7 +97,7 @@ def getLeagueUrls(minimize_window=True):
       
 def getMatchUrls(comp_urls, competition, season, maximize_window=True):
 
-    driver = webdriver.Chrome('drivers/chromedriver.exe', options=options)
+    driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()))
     
     if maximize_window:
         driver.maximize_window()
@@ -101,25 +106,25 @@ def getMatchUrls(comp_urls, competition, season, maximize_window=True):
     driver.get(comp_url)
     time.sleep(5)
     
-    seasons = driver.find_element_by_xpath('//*[@id="seasons"]').get_attribute('innerHTML').split(sep='\n')
+    seasons = driver.find_element(By.XPATH, '//*[@id="seasons"]').get_attribute('innerHTML').split(sep='\n')
     seasons = [i for i in seasons if i]
     
     
     for i in range(1, len(seasons)+1):
-        if driver.find_element_by_xpath('//*[@id="seasons"]/option['+str(i)+']').text == season:
-            driver.find_element_by_xpath('//*[@id="seasons"]/option['+str(i)+']').click()
+        if driver.find_element(By.XPATH, '//*[@id="seasons"]/option['+str(i)+']').text == season:
+            driver.find_element(By.XPATH, '//*[@id="seasons"]/option['+str(i)+']').click()
             
             time.sleep(5)
             try:
-                stages = driver.find_element_by_xpath('//*[@id="stages"]').get_attribute('innerHTML').split(sep='\n')
+                stages = driver.find_element(By.XPATH, '//*[@id="stages"]').get_attribute('innerHTML').split(sep='\n')
                 stages = [i for i in stages if i]
                 
                 all_urls = []
             
                 for i in range(1, len(stages)+1):
                     if competition == 'Champions League' or competition == 'Europa League':
-                        if 'Group Stages' in driver.find_element_by_xpath('//*[@id="stages"]/option['+str(i)+']').text or 'Final Stage' in driver.find_element_by_xpath('//*[@id="stages"]/option['+str(i)+']').text:
-                            driver.find_element_by_xpath('//*[@id="stages"]/option['+str(i)+']').click()
+                        if 'Group Stages' in driver.find_element(By.XPATH, '//*[@id="stages"]/option['+str(i)+']').text or 'Final Stage' in driver.find_element_by_xpath('//*[@id="stages"]/option['+str(i)+']').text:
+                            driver.find_element(By.XPATH, '//*[@id="stages"]/option['+str(i)+']').click()
                             time.sleep(5)
                             
                             driver.execute_script("window.scrollTo(0, 400)") 
@@ -135,8 +140,8 @@ def getMatchUrls(comp_urls, competition, season, maximize_window=True):
                             continue
                     
                     elif competition == 'Major League Soccer':
-                        if 'Grp. ' not in driver.find_element_by_xpath('//*[@id="stages"]/option['+str(i)+']').text: 
-                            driver.find_element_by_xpath('//*[@id="stages"]/option['+str(i)+']').click()
+                        if 'Grp. ' not in driver.find_element(By.XPATH, '//*[@id="stages"]/option['+str(i)+']').text: 
+                            driver.find_element(By.XPATH, '//*[@id="stages"]/option['+str(i)+']').click()
                             time.sleep(5)
                         
                             driver.execute_script("window.scrollTo(0, 400)")
@@ -152,7 +157,7 @@ def getMatchUrls(comp_urls, competition, season, maximize_window=True):
                             continue
                         
                     else:
-                        driver.find_element_by_xpath('//*[@id="stages"]/option['+str(i)+']').click()
+                        driver.find_element(By.XPATH, '//*[@id="stages"]/option['+str(i)+']').click()
                         time.sleep(5)
                     
                         driver.execute_script("window.scrollTo(0, 400)")
@@ -210,7 +215,7 @@ def getMatchesData(match_urls, minimize_window=True):
     
     matches = []
     
-    driver = webdriver.Chrome('drivers/chromedriver.exe', options=options)
+    driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()))
     if minimize_window:
         driver.minimize_window()
     
@@ -238,7 +243,7 @@ def getFixtureData(driver):
 
     matches_ls = []
     while True:
-        table_rows = driver.find_elements_by_class_name('divtable-row')
+        table_rows = driver.find_elements(By.CLASS_NAME, 'divtable-row')
         if len(table_rows) == 0:
             break
         for row in table_rows:
@@ -257,10 +262,10 @@ def getFixtureData(driver):
                 match_dict['url'] = link_tag.get("href")
             matches_ls.append(match_dict)
                 
-        prev_month = driver.find_element_by_xpath('//*[@id="date-controller"]/a[1]').click()
+        prev_month = driver.find_element(By.XPATH, '//*[@id="date-controller"]/a[1]').click()
         time.sleep(2)
-        if driver.find_element_by_xpath('//*[@id="date-controller"]/a[1]').get_attribute('title') == 'No data for previous week':
-            table_rows = driver.find_elements_by_class_name('divtable-row')
+        if driver.find_element(By.XPATH, '//*[@id="date-controller"]/a[1]').get_attribute('title') == 'No data for previous week':
+            table_rows = driver.find_elements(By.CLASS_NAME, 'divtable-row')
             for row in table_rows:
                 match_dict = {}
                 element = soup(row.get_attribute('innerHTML'), features='lxml')
@@ -326,8 +331,9 @@ def getMatchData(driver, url, display=True, close_window=True):
     except WebDriverException:
         driver.get(url)
 
+    time.sleep(5)
     # get script data from page source
-    script_content = driver.find_element_by_xpath('//*[@id="layout-wrapper"]/script[1]').get_attribute('innerHTML')
+    script_content = driver.find_element(By.XPATH, '//*[@id="layout-wrapper"]/script[1]').get_attribute('innerHTML')
 
 
     # clean script content
@@ -349,15 +355,15 @@ def getMatchData(driver, url, display=True, close_window=True):
 
 
     # get other details about the match
-    region = driver.find_element_by_xpath('//*[@id="breadcrumb-nav"]/span[1]').text
-    league = driver.find_element_by_xpath('//*[@id="breadcrumb-nav"]/a').text.split(' - ')[0]
-    season = driver.find_element_by_xpath('//*[@id="breadcrumb-nav"]/a').text.split(' - ')[1]
-    if len(driver.find_element_by_xpath('//*[@id="breadcrumb-nav"]/a').text.split(' - ')) == 2:
+    region = driver.find_element(By.XPATH, '//*[@id="breadcrumb-nav"]/span[1]').text
+    league = driver.find_element(By.XPATH, '//*[@id="breadcrumb-nav"]/a').text.split(' - ')[0]
+    season = driver.find_element(By.XPATH, '//*[@id="breadcrumb-nav"]/a').text.split(' - ')[1]
+    if len(driver.find_element(By.XPATH, '//*[@id="breadcrumb-nav"]/a').text.split(' - ')) == 2:
         competition_type = 'League'
         competition_stage = ''
-    elif len(driver.find_element_by_xpath('//*[@id="breadcrumb-nav"]/a').text.split(' - ')) == 3:
+    elif len(driver.find_element(By.XPATH, '//*[@id="breadcrumb-nav"]/a').text.split(' - '))== 3:
         competition_type = 'Knock Out'
-        competition_stage = driver.find_element_by_xpath('//*[@id="breadcrumb-nav"]/a').text.split(' - ')[-1]
+        competition_stage = driver.find_element(By.XPATH, '//*[@id="breadcrumb-nav"]/a').text.split(' - ')[-1]
     else:
         print('Getting more than 3 types of information about the competition.')
 
@@ -385,20 +391,18 @@ def getMatchData(driver, url, display=True, close_window=True):
 
 
 def createEventsDF(data):
-    
     events = data['events']
     for event in events:
         event.update({'matchId' : data['matchId'],
-                     'startDate' : data['startDate'],
-                     'startTime' : data['startTime'],
-                     'score' : data['score'],
-                     'ftScore' : data['ftScore'],
-                     'htScore' : data['htScore'],
-                     'etScore' : data['etScore'],
-                     'venueName' : data['venueName'],
-                     'maxMinute' : data['maxMinute']})
+                        'startDate' : data['startDate'],
+                        'startTime' : data['startTime'],
+                        'score' : data['score'],
+                        'ftScore' : data['ftScore'],
+                        'htScore' : data['htScore'],
+                        'etScore' : data['etScore'],
+                        'venueName' : data['venueName'],
+                        'maxMinute' : data['maxMinute']})
     events_df = pd.DataFrame(events)
-
 
     # clean period column
     events_df['period'] = pd.json_normalize(events_df['period'])['displayName']
@@ -416,11 +420,8 @@ def createEventsDF(data):
     except KeyError:
         events_df['cardType'] = False
 
-    # clean satisfiedEventTypes column
-    eventTypeDict = data['matchCentreEventTypeJson']
-    for i in range(len(events_df)):
-        row = events_df.loc[i, 'satisfiedEventsTypes'].copy()
-        events_df['satisfiedEventsTypes'].loc[i] = [list(eventTypeDict.keys())[list(eventTypeDict.values()).index(event)] for event in row]
+    eventTypeDict = data['matchCentreEventTypeJson']  
+    events_df['satisfiedEventsTypes'] = events_df['satisfiedEventsTypes'].apply(lambda x: [list(eventTypeDict.keys())[list(eventTypeDict.values()).index(event)] for event in x])
 
     # clean qualifiers column
     try:
@@ -432,20 +433,25 @@ def createEventsDF(data):
     except TypeError:
         pass
 
-    # clean isShot column
-    if 'isShot' in events_df.columns:
-        events_df['isShot'] = events_df['isShot'].replace(np.nan, False)
-    else:
-        events_df['isShot'] = False
 
-    # clean isGoal column
-    if 'isGoal' in events_df.columns:
-        events_df['isGoal'] = events_df['isGoal'].replace(np.nan, False)
-    else:
-        events_df['isGoal'] = False
+    # clean isShot column
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", category=FutureWarning)
+        if 'isShot' in events_df.columns:
+            events_df['isShot'] = events_df['isShot'].replace(np.nan, False).infer_objects(copy=False)
+        else:
+            events_df['isShot'] = False
+
+        # clean isGoal column
+        if 'isGoal' in events_df.columns:
+            events_df['isGoal'] = events_df['isGoal'].replace(np.nan, False).infer_objects(copy=False)
+        else:
+            events_df['isGoal'] = False
 
     # add player name column
-    events_df.loc[events_df.playerId.notna(), 'playerId'] = events_df.loc[events_df.playerId.notna(), 'playerId'].astype(int).astype(str)    
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", category=FutureWarning)
+        events_df.loc[events_df.playerId.notna(), 'playerId'] = events_df.loc[events_df.playerId.notna(), 'playerId'].astype(int).astype(str)    
     player_name_col = events_df.loc[:, 'playerId'].map(data['playerIdNameDictionary']) 
     events_df.insert(loc=events_df.columns.get_loc("playerId")+1, column='playerName', value=player_name_col)
 
@@ -453,29 +459,32 @@ def createEventsDF(data):
     h_a_col = events_df['teamId'].map({data['home']['teamId']:'h', data['away']['teamId']:'a'})
     events_df.insert(loc=events_df.columns.get_loc("teamId")+1, column='h_a', value=h_a_col)
 
+
     # adding shot body part column
     events_df['shotBodyType'] =  np.nan
-    for i in events_df.loc[events_df.isShot==True].index:
-        for j in events_df.loc[events_df.isShot==True].qualifiers.loc[i]:
-            if j['type'] == 'RightFoot' or j['type'] == 'LeftFoot' or j['type'] == 'Head' or j['type'] == 'OtherBodyPart':
-                events_df['shotBodyType'].loc[i] = j['type']
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", category=FutureWarning)
+        for i in events_df.loc[events_df.isShot==True].index:
+            for j in events_df.loc[events_df.isShot==True].qualifiers.loc[i]:
+                if j['type'] == 'RightFoot' or j['type'] == 'LeftFoot' or j['type'] == 'Head' or j['type'] == 'OtherBodyPart':
+                    events_df.loc[i, 'shotBodyType'] = j['type']
+
 
     # adding shot situation column
     events_df['situation'] =  np.nan
-    for i in events_df.loc[events_df.isShot==True].index:
-        for j in events_df.loc[events_df.isShot==True].qualifiers.loc[i]:
-            if j['type'] == 'FromCorner' or j['type'] == 'SetPiece' or j['type'] == 'DirectFreekick':
-                events_df['situation'].loc[i] = j['type']
-            if j['type'] == 'RegularPlay':
-                events_df['situation'].loc[i] = 'OpenPlay'   
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", category=FutureWarning)
+        for i in events_df.loc[events_df.isShot==True].index:
+            for j in events_df.loc[events_df.isShot==True].qualifiers.loc[i]:
+                if j['type'] == 'FromCorner' or j['type'] == 'SetPiece' or j['type'] == 'DirectFreekick':
+                    events_df.loc[i, 'situation'] = j['type']
+                if j['type'] == 'RegularPlay':
+                    events_df.loc[i, 'situation'] = 'OpenPlay' 
 
-    # adding other event types columns
-#     event_types = list(data['matchCentreEventTypeJson'].keys())
-#     for event_type in event_types:
-#         events_df[event_type] = pd.Series([event_type in row for row in list(events_df['satisfiedEventsTypes'])])
     event_types = list(data['matchCentreEventTypeJson'].keys())
     event_type_cols = pd.DataFrame({event_type: pd.Series([event_type in row for row in events_df['satisfiedEventsTypes']]) for event_type in event_types})
     events_df = pd.concat([events_df, event_type_cols], axis=1)
+
 
     return events_df
     
@@ -490,8 +499,10 @@ def createMatchesDF(data):
         matches_dict = dict([(key,val) for key,val in data.items() if key in columns_req_ls])
         matches_df = pd.DataFrame(matches_dict, columns=columns_req_ls).reset_index(drop=True)
         matches_df[['home', 'away']] = np.nan  
-        matches_df['home'].iloc[0] = [data['home']]
-        matches_df['away'].iloc[0] = [data['away']]
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", category=FutureWarning)
+            matches_df['home'].iloc[0] = [data['home']]
+            matches_df['away'].iloc[0] = [data['away']]
     else:
         for match in data:
             matches_dict = dict([(key,val) for key,val in match.items() if key in columns_req_ls])

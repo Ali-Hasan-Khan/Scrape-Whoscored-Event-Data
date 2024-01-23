@@ -246,7 +246,7 @@ def createPassNetworks(match_data, events_df, matchId, team, max_line_width,
                        family='DejaVu Sans', c='white', 
                        va='center', ha='center', zorder=average_locs_and_count.loc[i, 'zorder'], size=kit_no_size, weight='bold', ax=ax)
     ax.text(50, 104, "{} (Mins 1-{})".format(team, sub_minute).upper(), size=10, fontweight='bold', ha='center',
-           va='center')
+           va='center', c='white')
     ax.text(2, 3, '{}'.format(formation), size=9, c='grey')
 
     
@@ -439,7 +439,7 @@ def createAttPassNetworks(match_data, events_df, matchId, team, max_line_width,
                        family='DejaVu Sans', c='white', 
                        va='center', ha='center', zorder=average_locs_and_count.loc[i, 'zorder'], size=kit_no_size, weight='bold', ax=ax)
     ax.text(50, 104, "{} (Mins 1-{})".format(team, sub_minute).upper(), size=10, fontweight='bold', ha='center',
-           va='center')
+           va='center', c='white')
     ax.text(2, 3, '{}'.format(formation), size=9, c='grey')
 
     
@@ -499,7 +499,7 @@ def getTeamSuccessfulBoxPasses(events_df, teamId, team, pitch_color, cmap):
         
     # orientation='vertical'
     pitch = VerticalPitch(pitch_type='statsbomb', pitch_color=pitch_color, line_color='#c7d5cc',
-                          figsize=(16, 11), half=True, pad_top=2)
+                          half=True, pad_top=2)
     fig, ax = pitch.draw(tight_layout=True)
     
     # Plot the completed passes
@@ -563,8 +563,9 @@ def getTeamTotalPasses(events_df, teamId, team, opponent, pitch_color):
     unsuccessful_passes = team_passes.loc[team_passes['outcomeType']=='Unsuccessful'].reset_index(drop=True)
             
     # Setup the pitch
-    pitch = Pitch(pitch_type='statsbomb', pitch_color=pitch_color, line_color='#c7d5cc', figsize=(16, 11))
+    pitch = Pitch(pitch_type='statsbomb', pitch_color=pitch_color, line_color='#c7d5cc')
     fig, ax = pitch.draw(constrained_layout=True, tight_layout=False)
+    # fig.set_size_inches(14, 10)
     
     # Plot the completed passes
     pitch.arrows(successful_passes.x/100*120, 80-successful_passes.y/100*80,
@@ -577,7 +578,7 @@ def getTeamTotalPasses(events_df, teamId, team, opponent, pitch_color):
                  headwidth=6, headlength=5, headaxislength=12, color='#ba4f45', ax=ax, label='Blocked')
     
     # setup the legend
-    ax.legend(facecolor=pitch_color, handlelength=5, edgecolor='None', fontsize=8, loc='upper left', shadow=True)
+    ax.legend(facecolor=pitch_color, handlelength=5, edgecolor='None', fontsize=8, loc='upper left', shadow=True, labelcolor='white')
     
     # Set the title
     fig.suptitle(f'{team} Passes vs {opponent}', y=1, fontsize=15)
