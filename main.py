@@ -245,7 +245,10 @@ def getFixtureData(driver):
     while True:
         table_rows = driver.find_elements(By.CLASS_NAME, 'divtable-row')
         if len(table_rows) == 0:
-            break
+            if('is-disabled' in driver.find_element(By.XPATH, '//*[@id="date-controller"]/a[1]').get_attribute('class').split()):
+                break
+            else:
+                driver.find_element(By.XPATH, '//*[@id="date-controller"]/a[1]').click()
         for row in table_rows:
             match_dict = {}
             element = soup(row.get_attribute('innerHTML'), features='lxml')
