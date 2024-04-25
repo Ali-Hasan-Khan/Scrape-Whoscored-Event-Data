@@ -74,22 +74,25 @@ def getLeagueUrls(minimize_window=True):
     driver.get(main_url)
     league_names = []
     league_urls = []
-    n_tournaments = len(soup(driver.find_element(By.ID, 'popular-tournaments-list').get_attribute('innerHTML')).findAll('li'))
-    for i in range(n_tournaments):
-        league_name = driver.find_element(By.XPATH, '//*[@id="popular-tournaments-list"]/li['+str(i+1)+']/a').text
-        league_link = driver.find_element(By.XPATH, '//*[@id="popular-tournaments-list"]/li['+str(i+1)+']/a').get_attribute('href')
+    tournaments_btn = driver.find_element(By.XPATH, '//*[@id="Top-Tournaments-btn"]').click()
+    n_tournaments = soup(driver.find_element(By.XPATH, '//*[@id="header-wrapper"]/div/div/div/div[4]/div[2]/div/div[1]/div/div').get_attribute('innerHTML')).find_all('a')
+
+    for tournament in n_tournaments:
+        if(tournament.get('href').split('/')[-1]=='Russia-Premier-League'):
+            # print("Russian "+tournament.text+": "+main_url[:-1]+tournament.get('href'))
+            league_name = "Russian "+tournament.text
+        else:
+            # print(tournament.text+": "+main_url[:-1]+tournament.get('href'))
+            league_name = tournament.text
+
+        league_link = main_url[:-1]+tournament.get('href')
         league_names.append(league_name)
         league_urls.append(league_link)
-        
-    for link in league_urls:
-        if 'Russia' in link:
-            r_index = league_urls.index(link)
-            
-    league_names[r_index] = 'Russian Premier League'
-    
+
     leagues = {}
     for name,link in zip(league_names,league_urls):
         leagues[name] = link
+    
     driver.close()
     return leagues
 
