@@ -66,7 +66,7 @@ main_url = 'https://1xbet.whoscored.com/'
 
 def getLeagueUrls(minimize_window=True):
     
-    driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()))
+    driver = webdriver.Chrome()
     
     if minimize_window:
         driver.minimize_window()
@@ -97,10 +97,9 @@ def getLeagueUrls(minimize_window=True):
     return leagues
 
 
-      
 def getMatchUrls(comp_urls, competition, season, maximize_window=True):
 
-    driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()))
+    driver = webdriver.Chrome()
     
     if maximize_window:
         driver.maximize_window()
@@ -125,8 +124,9 @@ def getMatchUrls(comp_urls, competition, season, maximize_window=True):
                 all_urls = []
             
                 for i in range(1, len(stages)+1):
+                    print(driver.find_element(By.XPATH, '//*[@id="stages"]/option['+str(i)+']').text)
                     if competition == 'Champions League' or competition == 'Europa League':
-                        if 'Group Stages' in driver.find_element(By.XPATH, '//*[@id="stages"]/option['+str(i)+']').text or 'Final Stage' in driver.find_element_by_xpath('//*[@id="stages"]/option['+str(i)+']').text:
+                        if 'Grp' in driver.find_element(By.XPATH, '//*[@id="stages"]/option['+str(i)+']').text or 'Final Stage' in driver.find_element(By.XPATH, '//*[@id="stages"]/option['+str(i)+']').text:
                             driver.find_element(By.XPATH, '//*[@id="stages"]/option['+str(i)+']').click()
                             time.sleep(5)
                             
@@ -218,7 +218,7 @@ def getMatchesData(match_urls, minimize_window=True):
     
     matches = []
     
-    driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()))
+    driver = webdriver.Chrome()
     if minimize_window:
         driver.minimize_window()
     
@@ -243,53 +243,32 @@ def getMatchesData(match_urls, minimize_window=True):
 
 
 def getFixtureData(driver):
-
     matches_ls = []
     while True:
-        table_rows = driver.find_elements(By.CLASS_NAME, 'divtable-row')
-        if len(table_rows) == 0:
-            if('is-disabled' in driver.find_element(By.XPATH, '//*[@id="date-controller"]/a[1]').get_attribute('class').split()):
-                break
-            else:
-                driver.find_element(By.XPATH, '//*[@id="date-controller"]/a[1]').click()
-        for row in table_rows:
-            match_dict = {}
-            element = soup(row.get_attribute('innerHTML'), features='lxml')
-            link_tag = element.find("a", {"class":"result-1 rc"})
-            if type(link_tag) is type(None):
-                if type(element.find('span', {'class':'status-1 rc'})) is type(None):
-                    date = row.text.split(', ')[-1]
-            if type(link_tag) is not type(None):
-                match_dict['date'] = date
-                match_dict['time'] = element.find('div', {'class':'col12-lg-1 col12-m-1 col12-s-0 col12-xs-0 time divtable-data'}).text
-                match_dict['home'] = element.find_all("a", {"class":"team-link"})[0].text
-                match_dict['away'] = element.find_all("a", {"class":"team-link"})[1].text
-                match_dict['score'] = element.find("a", {"class":"result-1 rc"}).text
-                match_dict['url'] = link_tag.get("href")
-            matches_ls.append(match_dict)
-                
-        prev_month = driver.find_element(By.XPATH, '//*[@id="date-controller"]/a[1]').click()
-        time.sleep(2)
-        if driver.find_element(By.XPATH, '//*[@id="date-controller"]/a[1]').get_attribute('title') == 'No data for previous week':
-            table_rows = driver.find_elements(By.CLASS_NAME, 'divtable-row')
-            for row in table_rows:
-                match_dict = {}
-                element = soup(row.get_attribute('innerHTML'), features='lxml')
-                link_tag = element.find("a", {"class":"result-1 rc"})
-                if type(link_tag) is type(None):
-                    if type(element.find('span', {'class':'status-1 rc'})) is type(None):
-                        date = row.text.split(', ')[-1]
-                if type(link_tag) is not type(None):
-                    match_dict['date'] = date
-                    match_dict['time'] = element.find('div', {'class':'col12-lg-1 col12-m-1 col12-s-0 col12-xs-0 time divtable-data'}).text
-                    match_dict['home'] = element.find_all("a", {"class":"team-link"})[0].text
-                    match_dict['away'] = element.find_all("a", {"class":"team-link"})[1].text
-                    match_dict['score'] = element.find("a", {"class":"result-1 rc"}).text
-                    match_dict['url'] = link_tag.get("href")
-                matches_ls.append(match_dict)
+        initial = driver.page_source
+        all_fixtures = driver.find_elements(By.CLASS_NAME, 'Accordion-module_accordion__UuHD0')
+        for dates in all_fixtures:
+            fixtures = dates.find_elements(By.CLASS_NAME, 'Match-module_row__zwBOn')
+            date_row = dates.find_element(By.CLASS_NAME, 'Accordion-module_header__HqzWD')
+            for row in fixtures:
+                url = row.find_element(By.TAG_NAME, 'a')
+                if 'Live' in url.get_attribute('href'):
+                    match_dict = {}
+                    element = soup(row.get_attribute('innerHTML'), features='lxml')
+                    teams_tag = element.find("div", {"class":"Match-module_teams__sGVeq"})
+                    link_tag = element.find("a")
+                    match_dict['date'] = date_row.text
+                    match_dict['home'] = teams_tag.find_all('a')[0].text
+                    match_dict['away'] = teams_tag.find_all('a')[1].text
+                    match_dict['score'] = ':'.join([t.text for t in link_tag.find_all('span')])
+                    match_dict['url'] = link_tag['href']
+                    matches_ls.append(match_dict)
+        prev_btn = driver.find_element(By.ID, 'dayChangeBtn-prev')
+        prev_btn.click()
+        time.sleep(1)
+        final = driver.page_source
+        if initial == final:
             break
-    
-    matches_ls = list(filter(None, matches_ls))
 
     return matches_ls
 
@@ -319,14 +298,8 @@ def translateDate(data):
 
 
 def getSortedData(data):
-
-    try:
-        data = sorted(data, key = lambda i: dt.strptime(i['date'], '%b %d %Y'))
-        return data
-    except ValueError:    
-        data = translateDate(data)
-        data = sorted(data, key = lambda i: dt.strptime(i['date'], '%b %d %Y'))
-        return data
+    data = sorted(data, key = lambda i: dt.strptime(i['date'], '%A, %b %d %Y'))
+    return data
     
 
 
