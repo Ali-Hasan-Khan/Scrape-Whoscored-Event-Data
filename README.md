@@ -8,7 +8,7 @@ Installation:
 
 2) `pip install -r requirements.txt`
 
-3) For some additional visual customisations replace **linecollection.py** with the one present in mplsoccer folder on your machine (somewhere here: ~\anaconda3\Lib\site-packages\mplsoccer). [**Recommended**] 
+3) For some additional visual customisations replace **linecollection.py** with the one present in mplsoccer folder on your machine (somewhere here: ~\anaconda3\Lib\site-packages\mplsoccer). [Recommended for inverted gradient effect in pass maps] 
   
 4) Follow **tutorial.ipynb** for guide.
 
