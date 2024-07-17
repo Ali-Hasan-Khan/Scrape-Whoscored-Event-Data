@@ -67,24 +67,46 @@ main_url = 'https://1xbet.whoscored.com/'
 def getLeagueUrls(minimize_window=True):
     
     driver = webdriver.Chrome()
-    
+
     if minimize_window:
         driver.minimize_window()
-        
+
     driver.get(main_url)
     league_names = []
     league_urls = []
-    tournaments_btn = driver.find_element(By.XPATH, '//*[@id="Top-Tournaments-btn"]').click()
-    n_tournaments = soup(driver.find_element(By.XPATH, '//*[@id="header-wrapper"]/div/div/div/div[4]/div[2]/div/div[1]/div/div').get_attribute('innerHTML')).find_all('a')
+    try:
+        cookie_button = driver.find_element(By.XPATH, '//*[@class=" css-gweyaj"]').click()
+    except NoSuchElementException:
+        pass
+    tournaments_btn = driver.find_element(By.XPATH, '//*[@id="All-Tournaments-btn"]').click()
+    n_button = soup(driver.find_element(By.XPATH, '//*[@id="header-wrapper"]/div/div/div/div[4]/div[2]/div/div/div/div[1]/div/div').get_attribute('innerHTML')).find_all('button')
+    n_tournaments = []
+    for button in n_button:
+        id_button = button.get('id')
+        driver.find_element(By.ID, id_button).click()
+        n_country = soup(driver.find_element(By.XPATH, '//*[@id="header-wrapper"]/div/div/div/div[4]/div[2]/div/div/div/div[2]').get_attribute('innerHTML')).find_all('div', {'class':'TournamentsDropdownMenu-module_countryDropdownContainer__I9P6n'})
+
+        for country in n_country:
+            country_id = country.find('div', {'class': 'TournamentsDropdownMenu-module_countryDropdown__8rtD-'}).get('id')
+
+            # Trouver l'élément avec Selenium et cliquer dessus
+            country_element = driver.find_element(By.ID, country_id)
+            country_element.click()
+
+            html_tournaments_list = driver.find_element(By.XPATH, '//*[@id="header-wrapper"]/div/div/div/div[4]/div[2]/div/div/div/div[2]').get_attribute('innerHTML')
+
+            # Parse le HTML avec BeautifulSoup pour trouver les liens des tournois
+            soup_tournaments = soup(html_tournaments_list, 'html.parser')
+            tournaments = soup_tournaments.find_all('a')
+
+            # Ajouter les tournois à la liste n_tournaments
+            n_tournaments.extend(tournaments)
+
+            driver.execute_script("arguments[0].click();", country_element)
+
 
     for tournament in n_tournaments:
-        if(tournament.get('href').split('/')[-1]=='Russia-Premier-League'):
-            # print("Russian "+tournament.text+": "+main_url[:-1]+tournament.get('href'))
-            league_name = "Russian "+tournament.text
-        else:
-            # print(tournament.text+": "+main_url[:-1]+tournament.get('href'))
-            league_name = tournament.text
-
+        league_name = tournament.get('href').split('/')[-1]
         league_link = main_url[:-1]+tournament.get('href')
         league_names.append(league_name)
         league_urls.append(league_link)
@@ -92,7 +114,7 @@ def getLeagueUrls(minimize_window=True):
     leagues = {}
     for name,link in zip(league_names,league_urls):
         leagues[name] = link
-    
+
     driver.close()
     return leagues
 
