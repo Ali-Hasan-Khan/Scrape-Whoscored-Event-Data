@@ -14,7 +14,6 @@ import json
 from bs4 import BeautifulSoup as soup
 import re 
 from collections import OrderedDict
-import datetime
 from datetime import datetime as dt
 import itertools
 import numpy as np
@@ -26,13 +25,11 @@ except ModuleNotFoundError:
 
 from selenium import webdriver
 from selenium.common.exceptions import NoSuchElementException, WebDriverException
-from selenium.webdriver.chrome.service import Service
-from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.common.by import By
 
-options = webdriver.ChromeOptions()
+# options = webdriver.FirefoxOptions()
 
-options.add_experimental_option('excludeSwitches', ['enable-logging'])
+# options.add_experimental_option('excludeSwitches', ['enable-logging'])
 
 
 TRANSLATE_DICT = {'Jan': 'Jan',
@@ -66,7 +63,7 @@ main_url = 'https://1xbet.whoscored.com/'
 
 def getLeagueUrls(minimize_window=True):
     
-    driver = webdriver.Chrome()
+    driver = webdriver.Firefox()
 
     if minimize_window:
         driver.minimize_window()
@@ -121,7 +118,7 @@ def getLeagueUrls(minimize_window=True):
 
 def getMatchUrls(comp_urls, competition, season, maximize_window=True):
 
-    driver = webdriver.Chrome()
+    driver = webdriver.Firefox()
     
     if maximize_window:
         driver.maximize_window()
@@ -240,7 +237,7 @@ def getMatchesData(match_urls, minimize_window=True):
     
     matches = []
     
-    driver = webdriver.Chrome()
+    driver = webdriver.Firefox()
     if minimize_window:
         driver.minimize_window()
     
@@ -274,7 +271,8 @@ def getFixtureData(driver):
             date_row = dates.find_element(By.CLASS_NAME, 'Accordion-module_header__HqzWD')
             for row in fixtures:
                 url = row.find_element(By.TAG_NAME, 'a')
-                if 'Live' in url.get_attribute('href'):
+                if 'live' in url.get_attribute('href'):
+                    # print(url.get_attribute('href'))
                     match_dict = {}
                     element = soup(row.get_attribute('innerHTML'), features='lxml')
                     teams_tag = element.find("div", {"class":"Match-module_teams__sGVeq"})
@@ -284,6 +282,7 @@ def getFixtureData(driver):
                     match_dict['away'] = teams_tag.find_all('a')[1].text
                     match_dict['score'] = ':'.join([t.text for t in link_tag.find_all('span')])
                     match_dict['url'] = link_tag['href']
+                    # print(match_dict)
                     matches_ls.append(match_dict)
         prev_btn = driver.find_element(By.ID, 'dayChangeBtn-prev')
         prev_btn.click()
