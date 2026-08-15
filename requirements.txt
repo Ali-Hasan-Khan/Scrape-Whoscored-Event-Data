@@ -1,9 +1,7 @@
-numpy
-pandas
-matplotlib
-seaborn
-selenium==4.16.0
-mplsoccer==1.2.2
-requests
-unzip
-tqdm
+numpy>=1.23
+pandas>=1.5
+requests>=2.28
+beautifulsoup4>=4.11
+lxml>=4.9
+tqdm>=4.60
+selenium>=4.10
