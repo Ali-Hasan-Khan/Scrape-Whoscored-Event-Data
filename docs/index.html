@@ -3,615 +3,428 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>whoscored-event-data — Python SDK documentation</title>
-<meta name="description" content="Official documentation for the whoscored-event-data Python SDK: a polite, typed client for scraping football event data from Whoscored's chalkboard.">
+<title>whoscored-event-data · v2.0.0</title>
+<meta name="description" content="whoscored-event-data v2.0.0 — a polite, typed Python SDK for scraping football event data from Whoscored's chalkboard.">
 <style>
   :root {
-    --bg: #0b1020;
-    --bg-soft: #111830;
-    --panel: #161f3d;
-    --panel-2: #1b2547;
-    --border: #27335f;
-    --text: #e6ebff;
-    --muted: #9aa7cf;
-    --accent: #4f8cff;
-    --accent-2: #22d3ee;
-    --code-bg: #0d1330;
-    --code-text: #c7d3ff;
-    --green: #34d399;
-    --amber: #fbbf24;
-    --red: #f87171;
-    --mono: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
+    --fg: #1f2328;
+    --muted: #656d76;
+    --border: #d0d7de;
+    --bg: #ffffff;
+    --bg-sidebar: #f6f8fa;
+    --bg-code: #f6f8fa;
+    --accent: #0969da;
+    --accent-soft: #ddf4ff;
+    --warning: #9a6700;
+    --warning-bg: #fff8c5;
+    --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
     --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   }
   * { box-sizing: border-box; }
   html { scroll-behavior: smooth; }
   body {
     margin: 0;
-    background: var(--bg);
-    color: var(--text);
     font-family: var(--sans);
-    line-height: 1.65;
+    color: var(--fg);
+    background: var(--bg);
+    line-height: 1.6;
+    font-size: 15px;
   }
-  a { color: var(--accent-2); text-decoration: none; }
+  a { color: var(--accent); text-decoration: none; }
   a:hover { text-decoration: underline; }
 
-  /* Layout */
-  .layout { display: flex; max-width: 1280px; margin: 0 auto; }
+  .layout { display: flex; max-width: 1200px; margin: 0 auto; min-height: 100vh; }
+
+  /* Sidebar */
   nav {
-    width: 260px;
-    flex-shrink: 0;
-    padding: 28px 18px;
-    position: sticky;
-    top: 0;
-    height: 100vh;
-    overflow-y: auto;
+    width: 250px; flex-shrink: 0;
     border-right: 1px solid var(--border);
-    background: linear-gradient(180deg, var(--bg-soft), var(--bg));
+    background: var(--bg-sidebar);
+    padding: 24px 16px;
+    position: sticky; top: 0; height: 100vh; overflow-y: auto;
   }
-  nav .brand {
-    display: flex; align-items: center; gap: 10px;
-    font-weight: 700; font-size: 15px; color: var(--text);
-    margin-bottom: 20px;
+  nav .brand { font-weight: 600; font-size: 14px; padding: 0 10px 14px; border-bottom: 1px solid var(--border); margin-bottom: 12px; }
+  nav .brand span { display: block; font-weight: 400; color: var(--muted); font-size: 12px; margin-top: 2px; }
+  nav .group { margin-top: 18px; }
+  nav .title {
+    font-size: 11px; font-weight: 600; letter-spacing: .07em; text-transform: uppercase;
+    color: var(--muted); padding: 0 10px; margin-bottom: 4px;
   }
-  nav .brand .logo {
-    width: 30px; height: 30px; border-radius: 8px;
-    background: linear-gradient(135deg, var(--accent), var(--accent-2));
-    display: grid; place-items: center; font-size: 15px; color: #071022;
-  }
-  nav .brand small { display: block; font-weight: 400; color: var(--muted); font-size: 11px; }
   nav a {
-    display: block;
-    color: var(--muted);
-    font-size: 13.5px;
-    padding: 5px 10px;
-    margin: 1px 0;
-    border-radius: 6px;
-    border-left: 2px solid transparent;
+    display: block; padding: 5px 10px; border-radius: 6px;
+    font-size: 13.5px; color: var(--fg);
   }
-  nav a:hover { color: var(--text); text-decoration: none; background: var(--panel); }
-  nav a.active { color: var(--accent-2); border-left-color: var(--accent-2); background: var(--panel); }
-  nav .group { margin-top: 16px; }
-  nav .group > .title {
-    font-size: 11px; letter-spacing: .08em; text-transform: uppercase;
-    color: #5c6aa0; padding: 0 10px; margin-bottom: 6px;
+  nav a:hover { background: #eef1f4; text-decoration: none; }
+  nav a.active { background: var(--accent-soft); color: var(--accent); font-weight: 500; }
+
+  /* Main */
+  main { flex: 1; min-width: 0; padding: 48px 64px 80px; }
+  header { margin-bottom: 32px; }
+  header h1 { margin: 0; font-size: 30px; letter-spacing: -0.02em; }
+  header p { margin: 8px 0 0; color: var(--muted); max-width: 60ch; }
+  .ver {
+    display: inline-block; margin-left: 8px; vertical-align: middle;
+    font-size: 12px; font-weight: 600; color: var(--accent);
+    background: var(--accent-soft); border: 1px solid #9be7ff;
+    padding: 2px 8px; border-radius: 999px;
   }
 
-  main {
-    flex: 1;
-    min-width: 0;
-    padding: 40px 56px 96px;
-  }
-  @media (max-width: 900px) {
-    .layout { flex-direction: column; }
-    nav { width: 100%; height: auto; position: static; border-right: none; border-bottom: 1px solid var(--border); }
-    main { padding: 24px 20px 64px; }
-    #navToggle { display: inline-block; }
-    nav.closed { display: none; }
-  }
-
-  /* Typography */
-  h1 { font-size: 2.2rem; margin: 0 0 8px; letter-spacing: -0.02em; }
   h2 {
-    font-size: 1.5rem; margin: 56px 0 12px;
-    padding-bottom: 8px; border-bottom: 1px solid var(--border);
+    font-size: 21px; margin: 48px 0 12px; padding-bottom: 8px;
+    border-bottom: 1px solid var(--border);
     scroll-margin-top: 24px;
   }
-  h3 { font-size: 1.05rem; margin: 28px 0 8px; color: var(--accent-2); }
+  h3 { font-size: 16px; margin: 24px 0 8px; }
   p { margin: 10px 0; }
   ul, ol { margin: 10px 0; padding-left: 22px; }
-  li { margin: 4px 0; }
+  li { margin: 3px 0; }
+
   code {
-    font-family: var(--mono);
-    font-size: .86em;
-    background: var(--panel-2);
-    border: 1px solid var(--border);
-    padding: 1px 6px;
-    border-radius: 5px;
-    color: var(--accent-2);
+    font-family: var(--mono); font-size: .85em;
+    background: var(--bg-code); border: 1px solid var(--border);
+    border-radius: 5px; padding: 1px 5px;
   }
   pre {
     position: relative;
-    background: var(--code-bg);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 16px 18px;
-    overflow-x: auto;
-    margin: 14px 0;
+    background: var(--bg-code); border: 1px solid var(--border);
+    border-radius: 8px; padding: 14px 16px; overflow-x: auto; margin: 14px 0;
   }
-  pre code {
-    background: none; border: none; padding: 0;
-    color: var(--code-text); font-size: .84rem; line-height: 1.55;
-    display: block;
-  }
-  .kw { color: #c792ea; }
-  .fn { color: #82aaff; }
-  .st { color: #c3e88d; }
-  .cm { color: #6376a8; }
-  .nu { color: #f78c6c; }
+  pre code { background: none; border: none; padding: 0; font-size: 13px; line-height: 1.55; display: block; }
+  .cm { color: #6e7781; }
+  .fn { color: #8250df; }
+  .kw { color: #cf222e; }
+  .st { color: #0a3069; }
+  .nu { color: #0550ae; }
 
-  /* Copy button */
+  table { width: 100%; border-collapse: collapse; margin: 14px 0; font-size: 14px; }
+  th, td { text-align: left; padding: 8px 12px; border: 1px solid var(--border); vertical-align: top; }
+  th { background: var(--bg-sidebar); font-weight: 600; white-space: nowrap; }
+
+  .note { border-left: 3px solid var(--accent); background: var(--accent-soft); padding: 10px 14px; border-radius: 0 6px 6px 0; margin: 16px 0; font-size: 14px; }
+  .warn { border-left: 3px solid var(--warning); background: var(--warning-bg); padding: 10px 14px; border-radius: 0 6px 6px 0; margin: 16px 0; font-size: 14px; }
+
+  footer { margin-top: 64px; padding-top: 16px; border-top: 1px solid var(--border); color: var(--muted); font-size: 13px; }
+
   .copy {
     position: absolute; top: 8px; right: 8px;
-    background: var(--panel-2); color: var(--muted);
-    border: 1px solid var(--border); border-radius: 6px;
-    font-size: 11px; padding: 3px 9px; cursor: pointer;
+    background: #fff; color: var(--muted);
+    border: 1px solid var(--border); border-radius: 5px;
+    font-size: 11px; padding: 2px 8px; cursor: pointer;
   }
-  .copy:hover { color: var(--text); border-color: var(--accent); }
-  .copy.ok { color: var(--green); border-color: var(--green); }
+  .copy:hover { color: var(--fg); }
+  .copy.ok { color: #1a7f37; border-color: #1a7f37; }
 
-  /* Tables */
-  table { width: 100%; border-collapse: collapse; margin: 14px 0; font-size: .92rem; }
-  th, td { text-align: left; padding: 9px 12px; border-bottom: 1px solid var(--border); vertical-align: top; }
-  th { color: var(--accent-2); font-weight: 600; white-space: nowrap; }
-  tr:hover td { background: var(--panel); }
+  #navToggle { display: none; margin-bottom: 14px; font-size: 14px; padding: 6px 12px; background: var(--bg-sidebar); border: 1px solid var(--border); border-radius: 6px; cursor: pointer; }
+  #backTop {
+    position: fixed; bottom: 24px; right: 24px; display: none;
+    width: 36px; height: 36px; border-radius: 50%;
+    background: var(--fg); color: #fff; border: none; cursor: pointer; font-size: 16px;
+  }
 
-  /* Callouts */
-  .note, .warn, .tip {
-    border-radius: 8px; padding: 12px 16px; margin: 16px 0;
-    border-left: 4px solid;
-    font-size: .93rem;
+  @media (max-width: 900px) {
+    .layout { flex-direction: column; }
+    nav { width: 100%; height: auto; position: static; border-right: none; border-bottom: 1px solid var(--border); display: none; }
+    nav.open { display: block; }
+    #navToggle { display: inline-block; }
+    main { padding: 28px 20px 60px; }
+    h2 { margin-top: 36px; }
   }
-  .note { background: rgba(79,140,255,.08); border-color: var(--accent); }
-  .warn { background: rgba(251,191,36,.08); border-color: var(--amber); }
-  .tip  { background: rgba(52,211,153,.08); border-color: var(--green); }
-  .note b, .warn b, .tip b { display: block; margin-bottom: 4px; text-transform: uppercase; font-size: .78rem; letter-spacing: .06em; }
-  .note b { color: var(--accent); }
-  .warn b { color: var(--amber); }
-  .tip b { color: var(--green); }
-
-  /* Hero */
-  .hero {
-    background: linear-gradient(135deg, var(--bg-soft), var(--panel));
-    border: 1px solid var(--border);
-    border-radius: 14px;
-    padding: 28px 30px;
-    margin-bottom: 8px;
-  }
-  .hero .badges { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 14px; }
-  .badge {
-    font-size: 11px; padding: 3px 10px; border-radius: 999px;
-    border: 1px solid var(--border); color: var(--muted);
-  }
-  .badge.hot { color: var(--green); border-color: var(--green); }
-  .pip { color: var(--accent-2); }
-
-  footer {
-    margin-top: 72px; padding-top: 20px;
-    border-top: 1px solid var(--border);
-    color: var(--muted); font-size: .85rem;
-  }
-  #navToggle {
-    display: none; margin-bottom: 12px; cursor: pointer;
-    background: var(--panel); color: var(--text);
-    border: 1px solid var(--border); border-radius: 8px; padding: 6px 12px;
-  }
-  .backtop {
-    position: fixed; bottom: 22px; right: 22px;
-    background: var(--panel-2); border: 1px solid var(--border);
-    color: var(--muted); border-radius: 50%; width: 40px; height: 40px;
-    font-size: 18px; cursor: pointer; display: none; place-items: center;
-  }
-  .backtop:hover { color: var(--text); border-color: var(--accent); }
-  @media (min-width: 901px) { .backtop { display: grid; } }
 </style>
 </head>
 <body>
 
 <div class="layout">
-  <nav id="nav" class="closed">
-    <div class="brand">
-      <div class="logo">WS</div>
-      <div>whoscored-event-data<small>Python SDK · v2.0.0</small></div>
-    </div>
+  <nav id="nav">
+    <div class="brand">whoscored-event-data<span>v2.0.0</span></div>
+
     <div class="group">
       <div class="title">Getting started</div>
       <a href="#overview">Overview</a>
-      <a href="#installation">Installation</a>
+      <a href="#install">Install</a>
       <a href="#quickstart">Quick start</a>
-      <a href="#versioning">Versioning</a>
     </div>
+
     <div class="group">
-      <div class="title">Reference</div>
-      <a href="#whoscoredclient">WhoscoredClient</a>
-      <a href="#match">Match</a>
-      <a href="#discovery">League &amp; fixture discovery</a>
+      <div class="title">API reference</div>
+      <a href="#client">WhoscoredClient</a>
+      <a href="#models">Match · Fixture · Team</a>
+      <a href="#discovery">League &amp; fixtures</a>
       <a href="#epv">EPV analysis</a>
-      <a href="#helpers">Helpers &amp; utilities</a>
+      <a href="#utils">Utilities</a>
       <a href="#proxies">Proxies</a>
-      <a href="#cli">Command-line interface</a>
-      <a href="#exceptions">Exceptions</a>
+      <a href="#cli">CLI</a>
+      <a href="#errors">Errors</a>
     </div>
+
     <div class="group">
       <div class="title">Guides</div>
       <a href="#politeness">Politeness &amp; bans</a>
-      <a href="#browser">Browser troubleshooting</a>
-      <a href="#examples">Worked examples</a>
+      <a href="#browser">Browser setup</a>
+      <a href="#examples">Examples</a>
       <a href="#testing">Testing</a>
-      <a href="#compat">Backwards compatibility</a>
-      <a href="#layout">Project layout</a>
+      <a href="#legacy">v1 notebook API</a>
+      <a href="#layout">Repo layout</a>
     </div>
   </nav>
 
   <main>
     <button id="navToggle">☰ Menu</button>
 
-    <div class="hero">
-      <h1>whoscored-event-data</h1>
-      <p>
-        A <b>polite, typed Python SDK</b> for scraping football <b>match event data</b>
-        from <a href="https://www.whoscored.com/" target="_blank" rel="noopener">Whoscored</a>'s chalkboard —
-        a full rewrite of the original Selenium + notebook project.
-      </p>
-      <div class="badges">
-        <span class="badge hot">v2.0.0</span>
-        <span class="badge hot">No browser needed for data</span>
-        <span class="badge">Rate-limited</span>
-        <span class="badge">Cached</span>
-        <span class="badge">Proxy-aware</span>
-        <span class="badge">Offline-tested</span>
-        <span class="badge">Python ≥ 3.9</span>
-      </div>
-    </div>
+    <header>
+      <h1>whoscored-event-data <span class="ver">v2.0.0</span></h1>
+      <p>A polite, typed Python SDK for scraping football match event data from Whoscored's chalkboard. Built for Python ≥ 3.9.</p>
+    </header>
 
-    <!-- ================================================================ -->
     <section id="overview">
       <h2>Overview</h2>
-      <p>What changed versus the original project:</p>
+      <p>A rewrite of the original notebook-based scraper (<code>v1.0.0</code>) into a proper package. The event feed is decoded as real JSON, match pages are fetched over HTTP with rate limiting and caching, and a browser is only used when the site throws a bot challenge.</p>
       <ul>
-        <li><b>Typed, documented API</b> — no more copy-pasting notebook cells.</li>
-        <li><b>Fast &amp; polite</b> — match-centre pages are fetched over plain HTTP with built-in rate limiting (default 7&nbsp;s + random jitter) and caching, instead of driving a full browser per match.</li>
-        <li><b>Auto browser fallback</b> — Whoscored intermittently challenges even match pages with a bot wall. When the HTTP backend hits one (HTTP 403), the client transparently re-fetches through a real browser.</li>
-        <li><b>Robust parsing</b> — the event feed is decoded as real JSON rather than brittle string-splitting.</li>
-        <li><b>Backwards compatible</b> — the old <code>main.py</code> function names still exist as shims.</li>
+        <li><b>One request per match</b> — the whole event feed is embedded in a single page.</li>
+        <li><b>Polite by default</b> — 7&nbsp;s delay + jitter between requests, on-disk caching.</li>
+        <li><b>Auto browser fallback</b> — a 403 challenge is retried through a real browser automatically.</li>
+        <li><b>Backwards compatible</b> — the <code>v1</code> notebook functions still work via <code>main.py</code>.</li>
       </ul>
     </section>
 
-    <!-- ================================================================ -->
-    <section id="versioning">
-      <h2>Versioning</h2>
-      <p>This SDK is <b class="pip">v2.0.0</b> — a complete rewrite of the original notebook project, which was
-      <code>v1.0.0</code>. The version is mirrored across the package, the docs and the CLI:</p>
-      <pre><code><span class="kw">import</span> whoscored
-whoscored.__version__            <span class="cm"># "2.0.0"</span>
-
-whoscored --version              <span class="cm"># whoscored 2.0.0</span></code></pre>
-      <table>
-        <tr><th>Version</th><th>What it marks</th></tr>
-        <tr><td><code>v1.0.0</code></td><td>The original notebook project (Selenium + Jupyter workflow).</td></tr>
-        <tr><td><code>v2.0.0</code></td><td>This SDK rewrite — professional package, CLI, offline tests, docs, and this documentation site.</td></tr>
-      </table>
+    <section id="install">
+      <h2>Install</h2>
+      <pre><code>pip install -r requirements.txt   <span class="cm"># or: pip install -e .</span>
+<span class="cm"># extras: pip install -r requirements-visuals.txt   (plots)</span></code></pre>
+      <p>Dependencies: <code>pandas</code>, <code>numpy</code>, <code>requests</code>, <code>beautifulsoup4</code>, <code>lxml</code>, <code>tqdm</code>. <code>selenium</code> is optional and only needed for Cloudflare-protected listing pages.</p>
     </section>
 
-    <!-- ================================================================ -->
-    <section id="installation">
-      <h2>Installation</h2>
-      <pre><code><span class="cm"># from the repo</span>
-pip install -r requirements.txt        <span class="cm"># or: pip install -e .</span>
-
-<span class="cm"># as a package</span>
-pip install whoscored-event-data
-</code></pre>
-      <p>Core dependencies: <code>pandas</code>, <code>numpy</code>, <code>requests</code>, <code>beautifulsoup4</code>, <code>lxml</code>, <code>tqdm</code>.
-      <code>selenium</code> is only needed for the Cloudflare-protected listing pages. Visualisation extras
-      (<code>matplotlib</code>, <code>seaborn</code>, <code>mplsoccer</code>) live in <code>requirements-visuals.txt</code>.</p>
-    </section>
-
-    <!-- ================================================================ -->
     <section id="quickstart">
       <h2>Quick start</h2>
       <pre><code><span class="kw">from</span> whoscored <span class="kw">import</span> WhoscoredClient
 
-<span class="kw">with</span> WhoscoredClient() <span class="kw">as</span> client:      <span class="cm"># polite by default</span>
+<span class="kw">with</span> WhoscoredClient() <span class="kw">as</span> client:
     match = client.get_match(<span class="nu">1650630</span>)   <span class="cm"># id or full match URL</span>
 
 <span class="fn">print</span>(<span class="st">f"</span>{match.home.name}<span class="st"> {match.score} </span>{match.away.name}<span class="st">"</span>)
 <span class="cm"># -> Barcelona 0 : 0 Rayo Vallecano</span>
 
-events = match.events                  <span class="cm"># pandas DataFrame, one row per event</span>
-events_with_epv = match.add_epv()      <span class="cm"># appends an EPV column</span>
-match.matches_df                       <span class="cm"># match-level summary frame</span>
-
-events.to_csv(<span class="st">"events.csv"</span>, index=<span class="kw">False</span>)
-</code></pre>
-      <p>The events DataFrame carries <b>258 columns</b> per event — type, outcome, player, team, minute,
-      period, pitch coordinates, associated player/event ids, and more — and is row-identical to the legacy
-      scrape for the same matches.</p>
+events = match.events          <span class="cm"># DataFrame, one row per event (258 cols)</span>
+events = match.add_epv()       <span class="cm"># + Expected Possession Value column</span>
+events.to_csv(<span class="st">"events.csv"</span>, index=<span class="kw">False</span>)</code></pre>
     </section>
 
-    <!-- ================================================================ -->
-    <section id="whoscoredclient">
+    <section id="client">
       <h2>WhoscoredClient</h2>
-      <p>Main entry point. Use it as a context manager so resources are released automatically.</p>
+      <p>Main entry point. Use it as a context manager.</p>
 
-      <h3>Constructor options</h3>
-      <table>
-        <tr><th>Parameter</th><th>Default</th><th>Description</th></tr>
-        <tr><td><code>backend</code></td><td><code>"http"</code></td><td><code>"http"</code> (fast, match pages) or <code>"browser"</code> (Selenium, for Cloudflare listings).</td></tr>
-        <tr><td><code>driver</code></td><td><code>None</code></td><td>Reuse an existing Selenium WebDriver (browser backend).</td></tr>
-        <tr><td><code>headless</code></td><td><code>False</code></td><td>Run the browser headless. Not recommended — headless browsers are easily flagged.</td></tr>
-        <tr><td><code>browser</code></td><td><code>"firefox"</code></td><td><code>"firefox"</code> or <code>"chrome"</code>.</td></tr>
-        <tr><td><code>binary_location</code></td><td><code>None</code></td><td>Browser executable path (Firefox auto-detected; <code>FIREFOX_BIN</code> env also works).</td></tr>
-        <tr><td><code>request_delay</code></td><td><code>7.0</code></td><td>Seconds between HTTP requests.</td></tr>
-        <tr><td><code>jitter</code></td><td><code>2.0</code></td><td>Randomised extra delay on top of <code>request_delay</code>.</td></tr>
-        <tr><td><code>timeout</code></td><td><code>30</code></td><td>HTTP timeout per request.</td></tr>
-        <tr><td><code>retries</code></td><td><code>3</code></td><td>Retries per page on transient failures.</td></tr>
-        <tr><td><code>cache_dir</code></td><td><code>None</code></td><td>On-disk cache for raw match payloads (<code>None</code> = memory only).</td></tr>
-        <tr><td><code>user_agent</code></td><td><code>None</code></td><td>Override the browser user agent.</td></tr>
-        <tr><td><code>session</code></td><td><code>None</code></td><td>Reuse an existing <code>requests.Session</code>.</td></tr>
-        <tr><td><code>fallback_to_browser</code></td><td><code>True</code></td><td>On HTTP 403, re-fetch through a real browser automatically.</td></tr>
-        <tr><td><code>proxy</code></td><td><code>None</code></td><td>Single <code>host:port</code> or <code>http://host:port</code> proxy.</td></tr>
-        <tr><td><code>free_proxies</code></td><td><code>False</code></td><td>Rotate through validated free HTTP proxies.</td></tr>
-        <tr><td><code>proxy_pool</code></td><td><code>None</code></td><td>Custom rotating proxy pool (takes precedence).</td></tr>
-      </table>
-
-      <h3>Methods</h3>
       <table>
         <tr><th>Method</th><th>Returns</th><th>Description</th></tr>
         <tr><td><code>get_match(id_or_url)</code></td><td><code>Match</code></td><td>Fetch and parse one match.</td></tr>
-        <tr><td><code>get_matches(list)</code></td><td><code>list[Match]</code></td><td>Fetch many matches with a progress bar, preserving order.</td></tr>
-        <tr><td><code>list_leagues(refresh=False)</code></td><td><code>dict[str, str]</code></td><td>Leagues as <code>{slug: url}</code>. Works offline via the bundled snapshot.</td></tr>
+        <tr><td><code>get_matches(list)</code></td><td><code>list[Match]</code></td><td>Fetch many matches (progress bar, order preserved).</td></tr>
+        <tr><td><code>list_leagues(refresh=False)</code></td><td><code>dict[str, str]</code></td><td>Leagues as <code>{slug: url}</code>. Offline via bundled snapshot.</td></tr>
         <tr><td><code>list_fixtures(league, season)</code></td><td><code>list[Fixture]</code></td><td>Fixtures for a competition/season (browser backend).</td></tr>
-        <tr><td><code>team_fixtures(team, fixtures)</code></td><td><code>list[Fixture]</code></td><td>Filter a fixture list down to one team.</td></tr>
+        <tr><td><code>team_fixtures(team, fixtures)</code></td><td><code>list[Fixture]</code></td><td>Filter a fixture list to one team.</td></tr>
         <tr><td><code>close()</code></td><td>—</td><td>Release browser/session resources.</td></tr>
       </table>
 
-      <div class="note"><b>Context manager</b>Prefer <code>with WhoscoredClient() as client:</code> — <code>__exit__</code> calls <code>close()</code> for you.</div>
+      <h3>Constructor options</h3>
+      <table>
+        <tr><th>Option</th><th>Default</th><th>Description</th></tr>
+        <tr><td><code>backend</code></td><td><code>"http"</code></td><td><code>"http"</code> for match pages, <code>"browser"</code> for Selenium.</td></tr>
+        <tr><td><code>request_delay</code> / <code>jitter</code></td><td><code>7</code> / <code>2</code></td><td>Politeness pacing between requests.</td></tr>
+        <tr><td><code>timeout</code> / <code>retries</code></td><td><code>30</code> / <code>3</code></td><td>Per-request timeout and retry count.</td></tr>
+        <tr><td><code>cache_dir</code></td><td><code>None</code></td><td>On-disk cache for raw match payloads.</td></tr>
+        <tr><td><code>headless</code></td><td><code>False</code></td><td>Headless browser (not recommended — easily flagged).</td></tr>
+        <tr><td><code>browser</code> / <code>binary_location</code></td><td><code>"firefox"</code> / auto</td><td>Browser engine and executable path.</td></tr>
+        <tr><td><code>fallback_to_browser</code></td><td><code>True</code></td><td>Retry a 403 challenge through a real browser.</td></tr>
+        <tr><td><code>proxy</code> / <code>proxy_pool</code> / <code>free_proxies</code></td><td>off</td><td>Proxy support (see Proxies).</td></tr>
+      </table>
     </section>
 
-    <!-- ================================================================ -->
-    <section id="match">
-      <h2>Match</h2>
-      <p>A parsed match wrapping the raw payload with convenient accessors.</p>
+    <section id="models">
+      <h2>Match · Fixture · Team</h2>
       <table>
         <tr><th>Member</th><th>Type</th><th>Description</th></tr>
-        <tr><td><code>match_id</code></td><td><code>int</code></td><td>Whoscored match id.</td></tr>
-        <tr><td><code>home</code> / <code>away</code></td><td><code>Team</code></td><td>Teams; each has <code>.name</code>, <code>.team_id</code>, <code>.venue</code>.</td></tr>
-        <tr><td><code>score</code></td><td><code>str</code></td><td>e.g. <code>"0 : 0"</code>.</td></tr>
-        <tr><td><code>date</code>, <code>venue</code></td><td><code>str</code></td><td>Kick-off and stadium.</td></tr>
-        <tr><td><code>league</code>, <code>season</code></td><td><code>str</code></td><td>e.g. <code>"LaLiga"</code>, <code>"2022/2023"</code>.</td></tr>
-        <tr><td><code>events</code></td><td><code>DataFrame</code></td><td>One row per event, 258 columns.</td></tr>
-        <tr><td><code>matches_df</code></td><td><code>DataFrame</code></td><td>Match-level summary frame.</td></tr>
-        <tr><td><code>add_epv(**kw)</code></td><td><code>DataFrame</code></td><td>Events frame with an <code>EPV</code> column appended.</td></tr>
-        <tr><td><code>raw</code></td><td><code>dict</code></td><td>The full parsed payload (for advanced use).</td></tr>
+        <tr><td><code>match.match_id</code></td><td><code>int</code></td><td>Whoscored match id.</td></tr>
+        <tr><td><code>match.home</code> / <code>.away</code></td><td><code>Team</code></td><td><code>.name</code>, <code>.team_id</code>, <code>.venue</code>.</td></tr>
+        <tr><td><code>match.score</code></td><td><code>str</code></td><td>e.g. <code>"0 : 0"</code>.</td></tr>
+        <tr><td><code>match.league</code> / <code>.season</code> / <code>.date</code> / <code>.venue</code></td><td><code>str</code></td><td>Metadata.</td></tr>
+        <tr><td><code>match.events</code></td><td><code>DataFrame</code></td><td>One row per event, 258 columns.</td></tr>
+        <tr><td><code>match.matches_df</code></td><td><code>DataFrame</code></td><td>Match-level summary frame.</td></tr>
+        <tr><td><code>match.add_epv()</code></td><td><code>DataFrame</code></td><td>Events with an <code>EPV</code> column.</td></tr>
+        <tr><td><code>match.raw</code></td><td><code>dict</code></td><td>The full parsed payload.</td></tr>
+        <tr><td><code>Fixture.date/.home/.away/.score/.url</code>, <code>.match_id</code></td><td>—</td><td>A listed fixture.</td></tr>
       </table>
-      <p><code>Fixture</code> has <code>.date</code>, <code>.home</code>, <code>.away</code>, <code>.score</code>, <code>.url</code> and a <code>.match_id</code> property.
-      <code>Team</code> has <code>.team_id</code>, <code>.name</code>, <code>.venue</code>.</p>
     </section>
 
-    <!-- ================================================================ -->
     <section id="discovery">
       <h2>League &amp; fixture discovery</h2>
-      <p>League and fixture <i>listing</i> pages are Cloudflare-protected and require a real browser.
-      A snapshot of every league is bundled with the package, so listing leagues needs no network:</p>
-      <pre><code>client.list_leagues()          <span class="cm"># -> {"spain-laliga": "https://www.whoscored.com/...", ...}</span></code></pre>
-      <p>To re-scrape the live list or list a season's fixtures:</p>
-      <pre><code><span class="kw">with</span> WhoscoredClient(backend=<span class="st">"browser"</span>) <span class="kw">as</span> client:   <span class="cm"># Firefox, headed</span>
+      <p>Listing pages are Cloudflare-protected and need a browser. A snapshot of every league is bundled, so <code>list_leagues()</code> works with no network.</p>
+      <pre><code><span class="kw">with</span> WhoscoredClient(backend=<span class="st">"browser"</span>) <span class="kw">as</span> client:
     fixtures = client.list_fixtures(<span class="st">"spain-laliga"</span>, <span class="st">"2022/2023"</span>)
     lfc = client.team_fixtures(<span class="st">"Barcelona"</span>, fixtures)</code></pre>
-      <div class="warn"><b>Note</b>Whoscored ships generated CSS class names, so the discovery selectors may occasionally need updating when Whoscored changes its front-end. The match-centre pipeline (the part that gives you data) is unaffected because it never touches those pages.</div>
+      <div class="warn"><b>Heads-up:</b> Whoscored ships generated CSS class names, so the discovery selectors may need updating when Whoscored changes its front-end. The match-centre pipeline (the actual data) never touches those pages and is unaffected.</div>
     </section>
 
-    <!-- ================================================================ -->
     <section id="epv">
       <h2>EPV analysis</h2>
-      <p>Expected Possession Value, a possession-value model by Laurie Shaw, is bundled with the SDK.</p>
-      <pre><code><span class="kw">from</span> whoscored <span class="kw">import</span> add_epv_to_dataframe, load_epv_grid
-
-enriched = add_epv_to_dataframe(events_df)
-<span class="cm"># Adds an "EPV" column — non-NaN for successful passes.</span>
-<span class="cm"># Also exposes to_metric_coordinates_from_whoscored() and get_epv_at_location()</span></code></pre>
+      <p>Expected Possession Value (a model by Laurie Shaw) is bundled with the SDK.</p>
       <table>
         <tr><th>Function</th><th>Description</th></tr>
+        <tr><td><code>add_epv_to_dataframe(df)</code></td><td>Append the <code>EPV</code> column (non-NaN for successful passes).</td></tr>
         <tr><td><code>load_epv_grid()</code></td><td>Load the bundled 32×50 EPV surface.</td></tr>
-        <tr><td><code>get_epv_at_location(x, y)</code></td><td>EPV value for a point on the metric pitch.</td></tr>
-        <tr><td><code>to_metric_coordinates_from_whoscored(x, y)</code></td><td>Convert Whoscored coordinates to metric pitch coordinates.</td></tr>
-        <tr><td><code>add_epv_to_dataframe(df)</code></td><td>Append the <code>EPV</code> column (successful passes).</td></tr>
+        <tr><td><code>get_epv_at_location(x, y)</code></td><td>EPV for a point on the metric pitch.</td></tr>
+        <tr><td><code>to_metric_coordinates_from_whoscored(x, y)</code></td><td>Whoscored → metric pitch coordinates.</td></tr>
       </table>
     </section>
 
-    <!-- ================================================================ -->
-    <section id="helpers">
-      <h2>Helpers &amp; utilities</h2>
+    <section id="utils">
+      <h2>Utilities</h2>
       <table>
         <tr><th>Function / class</th><th>Description</th></tr>
-        <tr><td><code>save_dataframe(df, path)</code> / <code>load_dataframe(path)</code></td><td>CSV / Parquet round-trip, creating parent directories.</td></tr>
+        <tr><td><code>save_dataframe(df, path)</code> / <code>load_dataframe(path)</code></td><td>CSV / Parquet round-trip, creates parent dirs.</td></tr>
         <tr><td><code>save_json(data, path)</code> / <code>load_json(path)</code></td><td>JSON round-trip.</td></tr>
-        <tr><td><code>RateLimiter(delay, jitter)</code></td><td>Enforce a minimum gap between requests.</td></tr>
-        <tr><td><code>retry(func, retries, backoff)</code></td><td>Exponential-backoff wrapper.</td></tr>
-        <tr><td><code>create_events_dataframe(data)</code></td><td>Events frame from a raw payload.</td></tr>
-        <tr><td><code>create_matches_dataframe(data)</code></td><td>Match-level frame from a raw payload.</td></tr>
-        <tr><td><code>ProxyRotator(...)</code></td><td>Validating, rotating proxy pool (see Proxies).</td></tr>
+        <tr><td><code>RateLimiter(delay, jitter)</code></td><td>Minimum gap between requests.</td></tr>
+        <tr><td><code>retry(func, retries, backoff)</code></td><td>Exponential-backoff retry wrapper.</td></tr>
+        <tr><td><code>create_events_dataframe(data)</code> / <code>create_matches_dataframe(data)</code></td><td>Build frames from raw payloads.</td></tr>
       </table>
     </section>
 
-    <!-- ================================================================ -->
     <section id="proxies">
       <h2>Proxies</h2>
-      <p>Spread requests over multiple IPs with a static proxy or a rotating pool:</p>
       <pre><code><span class="kw">from</span> whoscored <span class="kw">import</span> WhoscoredClient, ProxyRotator
 
-<span class="cm"># Static proxy</span>
+<span class="cm"># Static</span>
 <span class="kw">with</span> WhoscoredClient(proxy=<span class="st">"host:port"</span>) <span class="kw">as</span> client:
     client.get_match(<span class="nu">1650630</span>)
 
-<span class="cm"># Rotating pool (validated against a neutral endpoint)</span>
+<span class="cm"># Rotating pool, validated against a neutral endpoint</span>
 pool = ProxyRotator(proxies=[<span class="st">"p1:8080"</span>, <span class="st">"p2:3128"</span>], validate=<span class="kw">True</span>)
 <span class="kw">with</span> WhoscoredClient(proxy_pool=pool) <span class="kw">as</span> client:
-    client.get_matches([<span class="nu">1650630</span>, <span class="nu">1650634</span>])
-
-<span class="cm"># Free lists from public sources</span>
-<span class="kw">with</span> WhoscoredClient(free_proxies=<span class="kw">True</span>) <span class="kw">as</span> client:
     client.get_matches(urls)</code></pre>
-      <p>When a pool is configured, blocked or dead proxies are skipped automatically — the transport rotates to the next one and only fails once <i>every</i> proxy has been tried. Proxies are validated against <code>gstatic.com</code>, never against Whoscored.</p>
-      <div class="warn"><b>Honest warning</b>Free proxy lists are dominated by datacenter IPs that Whoscored's bot protection blocks outright (all returned HTTP 403 in testing). A pool is most useful with residential proxy services (paid) or your own proxy servers. Treat free proxies as untrusted middlemen.</div>
+      <p>With a pool, a blocked or dead proxy is skipped automatically; the request only fails once <i>every</i> proxy has been tried. Proxies are validated against <code>gstatic.com</code>, never against Whoscored.</p>
+      <div class="warn"><b>Note:</b> free proxy lists are mostly datacenter IPs that Whoscored's bot protection blocks (all failed in testing). A pool is most useful with residential proxies or your own servers. Treat free proxies as untrusted.</div>
     </section>
 
-    <!-- ================================================================ -->
     <section id="cli">
-      <h2>Command-line interface</h2>
+      <h2>CLI</h2>
       <pre><code>whoscored --version
 whoscored leagues --out leagues.json
 whoscored match 1650630 --out data/ --epv
-whoscored fixtures spain-laliga 2023/2024 --out fixtures.json   <span class="cm"># browser</span>
+whoscored fixtures spain-laliga 2023/2024 --out fixtures.json
 whoscored team "Real Madrid" --fixtures fixtures.json
 whoscored scrape --fixtures fixtures.json --out scraped/ --delay 8</code></pre>
       <table>
         <tr><th>Global flag</th><th>Description</th></tr>
-        <tr><td><code>--delay N</code></td><td>Seconds between requests (default 7).</td></tr>
-        <tr><td><code>--jitter N</code></td><td>Random extra delay (default 2).</td></tr>
-        <tr><td><code>--cache DIR</code></td><td>Cache raw match payloads on disk.</td></tr>
-        <tr><td><code>--proxy URL</code></td><td>Single proxy for all requests.</td></tr>
-        <tr><td><code>--free-proxies</code></td><td>Rotate through validated free proxies.</td></tr>
+        <tr><td><code>--delay N</code> / <code>--jitter N</code></td><td>Politeness pacing.</td></tr>
+        <tr><td><code>--cache DIR</code></td><td>On-disk caching.</td></tr>
+        <tr><td><code>--proxy URL</code> / <code>--free-proxies</code></td><td>Proxy support.</td></tr>
       </table>
-      <p><code>python -m whoscored</code> behaves identically to the <code>whoscored</code> command.</p>
+      <p><code>python -m whoscored</code> is equivalent to <code>whoscored</code>.</p>
     </section>
 
-    <!-- ================================================================ -->
-    <section id="exceptions">
-      <h2>Exceptions</h2>
+    <section id="errors">
+      <h2>Errors</h2>
       <table>
         <tr><th>Exception</th><th>Raised when</th></tr>
         <tr><td><code>WhoscoredError</code></td><td>Base class for all SDK errors.</td></tr>
         <tr><td><code>TransportError</code></td><td>A network request or browser navigation fails.</td></tr>
-        <tr><td><code>BlockedError</code></td><td>Anti-bot / Cloudflare challenge (HTTP 403/404).</td></tr>
-        <tr><td><code>ParseError</code></td><td>The match-centre JSON can't be located or decoded.</td></tr>
-        <tr><td><code>MatchNotFoundError</code></td><td>No match centre page for the given id/url.</td></tr>
-        <tr><td><code>SeasonNotFoundError</code></td><td>The requested competition/season has no fixtures.</td></tr>
-        <tr><td><code>BackendError</code></td><td>A requested backend is unavailable or misconfigured.</td></tr>
-        <tr><td><code>ProxyError</code></td><td>The proxy pool is empty/exhausted.</td></tr>
+        <tr><td><code>BlockedError</code></td><td>Anti-bot / Cloudflare challenge (403/404).</td></tr>
+        <tr><td><code>ParseError</code></td><td>Match-centre JSON can't be located or decoded.</td></tr>
+        <tr><td><code>MatchNotFoundError</code> / <code>SeasonNotFoundError</code></td><td>No match page / no fixtures.</td></tr>
+        <tr><td><code>BackendError</code> / <code>ProxyError</code></td><td>Misconfigured backend / empty proxy pool.</td></tr>
       </table>
     </section>
 
-    <!-- ================================================================ -->
     <section id="politeness">
       <h2>Politeness &amp; avoiding bans</h2>
-      <p>This SDK is designed to keep your IP safe:</p>
       <ul>
-        <li><b>Rate limiting</b> — at least 7 seconds (plus jitter) between requests by default. Tune with <code>request_delay=</code>/<code>jitter=</code> or the CLI <code>--delay</code> flag.</li>
-        <li><b>Caching</b> — pass <code>cache_dir=".whoscored_cache"</code> so re-runs never touch the site.</li>
-        <li><b>One request per match</b> — the whole event feed is embedded in a single page; no per-match crawl.</li>
-        <li><b>Realistic headers</b> — browser user-agent and referer are sent by default.</li>
-        <li><b>Auto fallback</b> — a challenged page is retried through a real headed browser rather than hammering the HTTP endpoint.</li>
-        <li><b>No headless browsers</b> for Cloudflare pages (headed Firefox is far less likely to be flagged).</li>
+        <li>Rate limiting on by default (7&nbsp;s + jitter); tune with <code>request_delay=</code>/<code>jitter=</code> or <code>--delay</code>.</li>
+        <li>Set <code>cache_dir</code> so re-runs never touch the site.</li>
+        <li>Realistic browser headers are sent by default.</li>
+        <li>Challenged pages go through a real headed browser instead of hammering HTTP.</li>
       </ul>
-      <div class="warn"><b>Heads-up</b>Whoscored's bot protection is intermittent and can trigger after a burst of requests. The SDK surfaces these as <code>BlockedError</code> with a clear message. Stop scraping for a while if you keep seeing them — continuing only prolongs the block. Respect Whoscored's terms of service and keep delays generous.</div>
+      <div class="warn"><b>Heads-up:</b> Whoscored's bot protection is intermittent and can trigger after a burst of requests — surfaced as <code>BlockedError</code>. If you keep seeing it, stop scraping for a while; continuing prolongs the block. Respect Whoscored's terms of service.</div>
     </section>
 
-    <!-- ================================================================ -->
     <section id="browser">
-      <h2>Browser troubleshooting</h2>
+      <h2>Browser setup</h2>
       <ul>
-        <li><b>Ubuntu/Debian snap Firefox:</b> <code>/usr/bin/firefox</code> is a shell wrapper, not a real binary, so geckodriver fails with <code>binary is not a Firefox executable</code>. The SDK auto-detects the real binary at <code>/snap/firefox/current/usr/lib/firefox/firefox</code> (override via <code>WhoscoredClient(binary_location="...")</code> or <code>FIREFOX_BIN</code>).</li>
-        <li><b>Driver shutdown noise</b> is handled automatically: the benign <code>Error terminating service process</code>/<code>PermissionError</code> tracebacks from snap-packaged geckodriver and Selenium Manager's cosmetic <code>might not be compatible</code> warning are silenced. Set <code>SE_DEBUG=1</code> or <code>WHOSCORED_DEBUG=1</code> to restore diagnostics.</li>
-        <li><b>Missing geckodriver/chromedriver:</b> the browser backend auto-locates the driver via <code>PATH</code> (or <code>SE_GECKODRIVER</code>/<code>SE_CHROMEDRIVER</code>).</li>
+        <li><b>Ubuntu/Debian snap Firefox:</b> <code>/usr/bin/firefox</code> is a shell wrapper, not a real binary, so geckodriver fails with <code>binary is not a Firefox executable</code>. The SDK auto-detects the real binary (override via <code>binary_location=</code> or <code>FIREFOX_BIN</code>).</li>
+        <li><b>Driver shutdown noise</b> (the <code>PermissionError</code>/<code>Error terminating service process</code> tracebacks and the <code>might not be compatible</code> warning) is silenced automatically. Set <code>SE_DEBUG=1</code> to restore diagnostics.</li>
+        <li><b>Driver path:</b> found via <code>PATH</code>, or set <code>SE_GECKODRIVER</code>/<code>SE_CHROMEDRIVER</code>.</li>
       </ul>
     </section>
 
-    <!-- ================================================================ -->
     <section id="examples">
-      <h2>Worked examples</h2>
-
-      <h3>Fetch many matches and save them</h3>
+      <h2>Examples</h2>
+      <h3>Fetch many matches, add EPV, save</h3>
       <pre><code><span class="kw">from</span> whoscored <span class="kw">import</span> WhoscoredClient, save_dataframe
 
-urls = [
-    <span class="st">"https://www.whoscored.com/Matches/1650630/Live/Spain-LaLiga-2022-2023-Barcelona-Rayo-Vallecano"</span>,
-    <span class="st">"https://www.whoscored.com/Matches/1650634/Live/Spain-LaLiga-2022-2023-Osasuna-Sevilla"</span>,
-]
+urls = [<span class="st">"https://www.whoscored.com/Matches/1650630/Live/..."</span>,
+        <span class="st">"https://www.whoscored.com/Matches/1650634/Live/..."</span>]
 <span class="kw">with</span> WhoscoredClient(cache_dir=<span class="st">".whoscored_cache"</span>) <span class="kw">as</span> client:
     matches = client.get_matches(urls)
 
 <span class="kw">for</span> match <span class="kw">in</span> matches:
-    save_dataframe(match.add_epv(), <span class="st">f"data/events_</span>{match.match_id}<span class="st">.csv"</span>)
-</code></pre>
+    save_dataframe(match.add_epv(), <span class="st">f"data/events_</span>{match.match_id}<span class="st">.csv"</span>)</code></pre>
 
       <h3>A whole season for one team</h3>
       <pre><code><span class="kw">with</span> WhoscoredClient(backend=<span class="st">"browser"</span>) <span class="kw">as</span> client:
     fixtures = client.list_fixtures(<span class="st">"spain-laliga"</span>, <span class="st">"2022/2023"</span>)
     barca = client.team_fixtures(<span class="st">"Barcelona"</span>, fixtures)
 
-<span class="cm"># Take the match ids/urls and fetch them over the fast HTTP backend</span>
 <span class="kw">with</span> WhoscoredClient() <span class="kw">as</span> client:
     matches = client.get_matches([f.url <span class="kw">for</span> f <span class="kw">in</span> barca])</code></pre>
-
-      <h3>Event types available in the feed</h3>
-      <pre><code>Pass, Shot (SavedShot / MissedShots), Aerial, BallRecovery, BallTouch,
-BlockedPass, Card, Challenge, Clearance, CornerAwarded, Dispossessed,
-Interception, KeeperPickup, KeeperSweeper, OffsideGiven, OffsidePass,
-OffsideProvoked, Punch, Save, Tackle, TakeOn, SubstitutionOn/Off, ...</code></pre>
     </section>
 
-    <!-- ================================================================ -->
     <section id="testing">
       <h2>Testing</h2>
-      <p>The test suite runs entirely offline against a real captured match page, so it never risks getting your IP flagged:</p>
-      <pre><code>python test.py           <span class="cm"># offline suite (47 tests)</span>
-python test.py --live    <span class="cm"># also fetches one real match (single polite request)</span></code></pre>
+      <p>The suite runs entirely offline against a captured match page — no network, no ban risk.</p>
+      <pre><code>python test.py        <span class="cm"># offline suite (47 tests)</span>
+python test.py --live  <span class="cm"># + one real match fetch</span></code></pre>
     </section>
 
-    <!-- ================================================================ -->
-    <section id="compat">
-      <h2>Backwards compatibility</h2>
-      <p>The original notebook API still works via <code>main.py</code> shims (with a <code>DeprecationWarning</code>):</p>
-      <pre><code><span class="kw">import</span> main
-leagues = main.getLeagueUrls(<span class="st">"spain-laliga"</span>)
-fixtures = main.getMatchUrls(<span class="st">"spain-laliga"</span>, <span class="st">"2022/2023"</span>)
-events = main.createEventsDF(data)
-epv = main.addEpvToDataFrame(events)
-grid = main.load_EPV_grid()</code></pre>
-      <p>Available shims: <code>getLeagueUrls</code>, <code>getMatchUrls</code>, <code>getTeamUrls</code>, <code>getMatchesData</code>, <code>getMatchData</code>, <code>getFixtureData</code>, <code>createEventsDF</code>, <code>createMatchesDF</code>, <code>translateDate</code>, <code>getSortedData</code>, <code>load_EPV_grid</code>, <code>get_EPV_at_location</code>, <code>to_metric_coordinates_from_whoscored</code>, <code>addEpvToDataFrame</code>, <code>main_url</code>, <code>TRANSLATE_DICT</code>.</p>
+    <section id="legacy">
+      <h2>v1 notebook API</h2>
+      <p>The original notebook functions still work via <code>main.py</code> (with a <code>DeprecationWarning</code>): <code>getLeagueUrls</code>, <code>getMatchUrls</code>, <code>getTeamUrls</code>, <code>getMatchesData</code>, <code>getMatchData</code>, <code>getFixtureData</code>, <code>createEventsDF</code>, <code>createMatchesDF</code>, <code>translateDate</code>, <code>getSortedData</code>, <code>load_EPV_grid</code>, <code>get_EPV_at_location</code>, <code>to_metric_coordinates_from_whoscored</code>, <code>addEpvToDataFrame</code>, <code>main_url</code>.</p>
     </section>
 
-    <!-- ================================================================ -->
     <section id="layout">
-      <h2>Project layout</h2>
+      <h2>Repo layout</h2>
       <pre><code>whoscored/            <span class="cm">the SDK package</span>
   client.py           WhoscoredClient (main entry point)
   parser.py           match-centre JSON extraction
   dataframe.py        event / match DataFrame builders
-  epv.py              Expected Possession Value helpers
+  epv.py              EPV helpers
   models.py           Match / Fixture / League / Team
   transports.py       HTTP + Selenium browser backends
-  discovery.py        league / fixture listing (browser-based)
+  discovery.py        league / fixture listing
   proxies.py          rotating proxy pool
-  cache.py            on-disk payload cache
+  cache.py            on-disk cache
   utils.py            RateLimiter, retry, save/load helpers
   cli.py              the `whoscored` command
-main.py               compatibility shim for the old notebook API
+main.py               v1 compatibility shims
 tests/                offline test suite + captured fixture
-examples/quickstart.py
-docs/                 this documentation site</code></pre>
+docs/index.html       this documentation site</code></pre>
     </section>
 
     <footer>
-      <p>whoscored-event-data · v2.0.0 · Scrape-Whoscored-Event-Data · Documentation is static and deploys to Vercel as-is.</p>
+      whoscored-event-data · v2.0.0
     </footer>
   </main>
 </div>
 
-<button class="backtop" id="backTop" title="Back to top">↑</button>
+<button id="backTop" title="Back to top">↑</button>
 
 <script>
-  // Nav: collapse/expand on mobile
   var toggle = document.getElementById("navToggle");
   var nav = document.getElementById("nav");
-  if (toggle) {
-    toggle.addEventListener("click", function () { nav.classList.toggle("closed"); });
-  }
+  toggle.addEventListener("click", function () { nav.classList.toggle("open"); });
 
-  // Back-to-top
   var backTop = document.getElementById("backTop");
   window.addEventListener("scroll", function () {
-    backTop.style.display = window.scrollY > 400 ? "grid" : "none";
+    backTop.style.display = window.scrollY > 500 ? "block" : "none";
   });
   backTop.addEventListener("click", function () { window.scrollTo({ top: 0, behavior: "smooth" }); });
 
-  // Active nav highlighting
   var links = Array.prototype.slice.call(document.querySelectorAll("nav a[href^='#']"));
-  var sections = links.map(function (a) {
-    return document.getElementById(a.getAttribute("href").slice(1));
-  }).filter(Boolean);
+  var sections = links.map(function (a) { return document.getElementById(a.getAttribute("href").slice(1)); }).filter(Boolean);
   var observer = new IntersectionObserver(function (entries) {
     entries.forEach(function (entry) {
       if (entry.isIntersecting) {
@@ -623,7 +436,6 @@ docs/                 this documentation site</code></pre>
   }, { rootMargin: "-20% 0px -70% 0px" });
   sections.forEach(function (s) { observer.observe(s); });
 
-  // Copy buttons on code blocks
   document.querySelectorAll("pre").forEach(function (pre) {
     var btn = document.createElement("button");
     btn.className = "copy";
