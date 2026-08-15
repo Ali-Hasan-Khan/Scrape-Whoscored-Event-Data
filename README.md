@@ -1,10 +1,6 @@
 # Scraping Whoscored Event Data
 ![alt text](https://github.com/Ali-Hasan-Khan/Scrape-Whoscored-Event-Data/blob/main/logo.jpg "Whoscored")
 
-📖 **Documentation (HTML, Vercel-ready): [`docs/index.html`](docs/index.html)** —
-a self-contained docs site covering the full SDK API, CLI, examples and
-troubleshooting. Deploy it with `vercel` from the repo root (see
-[`vercel.json`](vercel.json)).
 
 ## Versioning
 
