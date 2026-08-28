@@ -187,6 +187,12 @@ python test.py            # offline
 python test.py --live     # also fetches one real match (single polite request)
 ```
 
+## Contributing
+
+Contributions are welcome! See [CONTRIBUTING.md](CONTRIBUTING.md) for the dev
+setup, the offline-first testing rules, and the conventions that keep the
+automated browsers and fixtures from breaking.
+
 ## Project layout
 
 ```
